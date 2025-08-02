@@ -627,7 +627,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     address: RACING_CONTRACT_ADDRESS,
     abi: RACING_ABI,
     eventName: "CarMinted",
-    onLogs(logs) {
+    onLogs(_logs) {
       refetchCars();
     },
   });
@@ -639,7 +639,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     args: {
       to: address, // Only watch for tokens sent TO this address
     },
-    onLogs(logs) {
+    onLogs(_logs) {
       // Refetch token balance when tokens are received
       setTimeout(() => {
         refetchTokenBalance();

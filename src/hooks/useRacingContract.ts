@@ -632,7 +632,7 @@ export const useRacingContract = () => {
     address: RACING_CONTRACT_ADDRESS,
     abi: RACING_ABI,
     eventName: "CarMinted",
-    onLogs(logs) {
+    onLogs(_logs) {
       refetchCars();
       refetchStats();
     },
@@ -642,7 +642,7 @@ export const useRacingContract = () => {
     address: RACING_CONTRACT_ADDRESS,
     abi: RACING_ABI,
     eventName: "RaceCompleted",
-    onLogs(logs) {
+    onLogs(_logs) {
       refetchCars();
       refetchStats();
     },

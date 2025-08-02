@@ -84,7 +84,7 @@ function GameWrapper() {
     setCurrentView("racing");
   };
 
-  const handleTournamentCompleted = (tournamentId: number) => {};
+  const handleTournamentCompleted = (_tournamentId: number) => {};
 
   const handleNavigateToTournaments = () => {
     setActiveTournamentId(null);
