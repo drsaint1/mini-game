@@ -34,7 +34,6 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
   );
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  // Read current player's stats for fallback
   const { data: currentPlayerStats } = useReadContract({
     address: RACING_CONTRACT_ADDRESS,
     abi: RACING_ABI,

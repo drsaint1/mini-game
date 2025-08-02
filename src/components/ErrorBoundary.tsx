@@ -18,7 +18,6 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI
     return { hasError: true, error };
   }
 
@@ -29,8 +28,6 @@ class ErrorBoundary extends Component<Props, State> {
       error,
       errorInfo,
     });
-
-    // Example: logErrorToService(error, errorInfo);
   }
 
   private handleReload = () => {
@@ -43,7 +40,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
-        if (this.props.fallback) {
+      if (this.props.fallback) {
         return this.props.fallback;
       }
 
@@ -239,7 +236,6 @@ class ErrorBoundary extends Component<Props, State> {
 
 export default ErrorBoundary;
 
-
 interface ErrorFallbackProps {
   error: Error;
   resetError: () => void;
@@ -285,7 +281,6 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   );
 };
 
-// Hook version using react-error-boundary library
 export const useErrorHandler = () => {
   const handleError = (error: Error, errorInfo: { componentStack: string }) => {
     console.error("Game error:", error);

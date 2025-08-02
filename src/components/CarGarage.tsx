@@ -31,35 +31,32 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
 
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
-  const [stakingRewards, setStakingRewards] = useState<Map<number, number>>(new Map());
+  const [stakingRewards, setStakingRewards] = useState<Map<number, number>>(
+    new Map()
+  );
   const [currentTxHash, setCurrentTxHash] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [pendingStakeUpdates, setPendingStakeUpdates] = useState<Set<number>>(new Set());
+  const [pendingStakeUpdates, setPendingStakeUpdates] = useState<Set<number>>(
+    new Set()
+  );
 
-  // Watch for transaction confirmation
-  const {
-    isSuccess: isTxConfirmed,
-    isError: isTxError,
-  } = useWaitForTransactionReceipt({
-    hash: currentTxHash as `0x${string}`,
-    query: { enabled: !!currentTxHash },
-  });
+  const { isSuccess: isTxConfirmed, isError: isTxError } =
+    useWaitForTransactionReceipt({
+      hash: currentTxHash as `0x${string}`,
+      query: { enabled: !!currentTxHash },
+    });
 
-  // Handle transaction confirmation
   useEffect(() => {
     if (isTxConfirmed && currentTxHash) {
-      
-      // Add success notification
       addNotification({
         type: "success",
         title: "Transaction Confirmed!",
-        message: actionInProgress?.includes("staking") 
+        message: actionInProgress?.includes("staking")
           ? "Your car has been successfully staked and is now earning XP!"
           : "Your car has been successfully unstaked and XP rewards have been claimed!",
         duration: 5000,
       });
 
-      // Refresh car data and clear states
       setTimeout(() => {
         refetchCars();
         setActionInProgress(null);
@@ -69,7 +66,6 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
     }
 
     if (isTxError && currentTxHash) {
-      
       addNotification({
         type: "error",
         title: "Transaction Failed",
@@ -83,13 +79,11 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
     }
   }, [isTxConfirmed, isTxError, currentTxHash, actionInProgress]);
 
-  // Notification management
   const addNotification = (notification: Omit<Notification, "id">) => {
     const id = Date.now().toString();
     const newNotification = { ...notification, id };
-    setNotifications(prev => [...prev, newNotification]);
+    setNotifications((prev) => [...prev, newNotification]);
 
-    // Auto-remove notification after duration
     if (notification.duration) {
       setTimeout(() => {
         removeNotification(id);
@@ -98,14 +92,13 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
   };
 
   const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  // Calculate staking rewards for all staked cars
   useEffect(() => {
     const updateStakingRewards = () => {
       const newRewards = new Map<number, number>();
-      playerCars.forEach(car => {
+      playerCars.forEach((car) => {
         if (car.isStaked) {
           const rewards = getStakingRewards(car);
           newRewards.set(car.id, rewards);
@@ -115,20 +108,19 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
     };
 
     updateStakingRewards();
-    
-    // Update rewards every 30 seconds for real-time display
+
     const interval = setInterval(updateStakingRewards, 30000);
     return () => clearInterval(interval);
   }, [playerCars, getStakingRewards]);
 
   const handleStakeCar = async (car: CarNFT) => {
     if (car.isStaked) return;
-    
+
     try {
       setActionInProgress(`staking-${car.id}`);
-      setPendingStakeUpdates(prev => new Set([...prev, car.id]));
-      
-      // Show immediate feedback
+      setPendingStakeUpdates((prev) => new Set([...prev, car.id]));
+
+     
       addNotification({
         type: "info",
         title: "Staking Car...",
@@ -137,11 +129,11 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
       });
 
       const txHash = await stakeCar(car.id);
-      
+
       if (txHash) {
         setCurrentTxHash(txHash);
+
         
-        // Update notification for transaction submitted
         addNotification({
           type: "loading",
           title: "Transaction Submitted",
@@ -151,23 +143,23 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
       }
     } catch (error: any) {
       console.error("Failed to stake car:", error);
-      
+
       let errorMessage = "Failed to stake car. Please try again.";
       if (error.message?.includes("rejected")) {
         errorMessage = "Transaction was rejected in wallet.";
       } else if (error.message?.includes("insufficient")) {
         errorMessage = "Insufficient funds to pay gas fees.";
       }
-      
+
       addNotification({
         type: "error",
         title: "Staking Failed",
         message: errorMessage,
         duration: 5000,
       });
-      
+
       setActionInProgress(null);
-      setPendingStakeUpdates(prev => {
+      setPendingStakeUpdates((prev) => {
         const newSet = new Set(prev);
         newSet.delete(car.id);
         return newSet;
@@ -177,14 +169,13 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
 
   const handleUnstakeCar = async (car: CarNFT) => {
     if (!car.isStaked) return;
-    
+
     try {
       setActionInProgress(`unstaking-${car.id}`);
-      setPendingStakeUpdates(prev => new Set([...prev, car.id]));
-      
+      setPendingStakeUpdates((prev) => new Set([...prev, car.id]));
+
       const currentRewards = stakingRewards.get(car.id) || 0;
-      
-     
+
       addNotification({
         type: "info",
         title: "Unstaking Car...",
@@ -193,10 +184,10 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
       });
 
       const txHash = await unstakeCar(car.id);
-      
+
       if (txHash) {
         setCurrentTxHash(txHash);
-        
+
         // Update notification for transaction submitted
         addNotification({
           type: "loading",
@@ -207,23 +198,23 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
       }
     } catch (error: any) {
       console.error("Failed to unstake car:", error);
-      
+
       let errorMessage = "Failed to unstake car. Please try again.";
       if (error.message?.includes("rejected")) {
         errorMessage = "Transaction was rejected in wallet.";
       } else if (error.message?.includes("insufficient")) {
         errorMessage = "Insufficient funds to pay gas fees.";
       }
-      
+
       addNotification({
         type: "error",
         title: "Unstaking Failed",
         message: errorMessage,
         duration: 5000,
       });
-      
+
       setActionInProgress(null);
-      setPendingStakeUpdates(prev => {
+      setPendingStakeUpdates((prev) => {
         const newSet = new Set(prev);
         newSet.delete(car.id);
         return newSet;
@@ -232,7 +223,6 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
   };
 
   const getCarStatusText = (car: CarNFT) => {
-    
     if (pendingStakeUpdates.has(car.id)) {
       if (car.isStaked) {
         return "Unstaking...";
@@ -240,12 +230,14 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
         return "Staking...";
       }
     }
-    
+
     if (car.isStaked) {
-      const timeStaked = Math.floor((Date.now() - car.stakedTime * 1000) / 1000);
+      const timeStaked = Math.floor(
+        (Date.now() - car.stakedTime * 1000) / 1000
+      );
       const daysStaked = Math.floor(timeStaked / (24 * 60 * 60));
       const hoursStaked = Math.floor((timeStaked % (24 * 60 * 60)) / (60 * 60));
-      
+
       if (daysStaked > 0) {
         return `Staked for ${daysStaked}d ${hoursStaked}h`;
       } else {
@@ -257,17 +249,17 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
 
   const getCarStatusColor = (car: CarNFT) => {
     if (pendingStakeUpdates.has(car.id)) {
-      return "#8b5cf6"; 
+      return "#8b5cf6";
     }
-    return car.isStaked ? "#fbbf24" : "#10b981"; 
+    return car.isStaked ? "#fbbf24" : "#10b981";
   };
 
-  const stakedCars = playerCars.filter(car => car.isStaked);
-  const availableCars = playerCars.filter(car => !car.isStaked);
+  const stakedCars = playerCars.filter((car) => car.isStaked);
+  const availableCars = playerCars.filter((car) => !car.isStaked);
 
   const tabs = [
     { id: "overview", label: "🏠 Overview", count: playerCars.length },
-    { id: "staking", label: "⚡ Staking", count: stakedCars.length }
+    { id: "staking", label: "⚡ Staking", count: stakedCars.length },
   ];
 
   if (loading) {
@@ -345,9 +337,13 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
           fontWeight: "600",
         }}
       >
-        {pendingStakeUpdates.has(car.id) 
-          ? (car.isStaked ? "⏳ UNSTAKING" : "⏳ STAKING")
-          : (car.isStaked ? "⚡ STAKED" : "🟢 AVAILABLE")}
+        {pendingStakeUpdates.has(car.id)
+          ? car.isStaked
+            ? "⏳ UNSTAKING"
+            : "⏳ STAKING"
+          : car.isStaked
+          ? "⚡ STAKED"
+          : "🟢 AVAILABLE"}
       </div>
 
       <div style={{ marginBottom: "16px" }}>
@@ -387,19 +383,25 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
         }}
       >
         <div style={{ textAlign: "center" }}>
-          <div style={{ color: "#ef4444", fontSize: "18px", fontWeight: "bold" }}>
+          <div
+            style={{ color: "#ef4444", fontSize: "18px", fontWeight: "bold" }}
+          >
             {car.speed}
           </div>
           <div style={{ color: "#9ca3af", fontSize: "11px" }}>SPEED</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ color: "#3b82f6", fontSize: "18px", fontWeight: "bold" }}>
+          <div
+            style={{ color: "#3b82f6", fontSize: "18px", fontWeight: "bold" }}
+          >
             {car.handling}
           </div>
           <div style={{ color: "#9ca3af", fontSize: "11px" }}>HANDLING</div>
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ color: "#10b981", fontSize: "18px", fontWeight: "bold" }}>
+          <div
+            style={{ color: "#10b981", fontSize: "18px", fontWeight: "bold" }}
+          >
             {car.acceleration}
           </div>
           <div style={{ color: "#9ca3af", fontSize: "11px" }}>ACCEL</div>
@@ -407,30 +409,50 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
       </div>
 
       <div style={{ marginBottom: "16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "4px",
+          }}
+        >
           <span style={{ color: "#a78bfa", fontSize: "12px" }}>Experience</span>
-          <span style={{ color: "#a78bfa", fontSize: "12px" }}>{car.experience} XP</span>
+          <span style={{ color: "#a78bfa", fontSize: "12px" }}>
+            {car.experience} XP
+          </span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <span style={{ color: "#fbbf24", fontSize: "12px" }}>Wins/Races</span>
-          <span style={{ color: "#fbbf24", fontSize: "12px" }}>{car.wins}/{car.races}</span>
+          <span style={{ color: "#fbbf24", fontSize: "12px" }}>
+            {car.wins}/{car.races}
+          </span>
         </div>
       </div>
 
       <div style={{ marginBottom: "16px" }}>
         <div
           style={{
-            background: car.isStaked ? "rgba(251, 191, 36, 0.1)" : "rgba(16, 185, 129, 0.1)",
+            background: car.isStaked
+              ? "rgba(251, 191, 36, 0.1)"
+              : "rgba(16, 185, 129, 0.1)",
             padding: "8px 12px",
             borderRadius: "8px",
             textAlign: "center",
           }}
         >
-          <div style={{ color: getCarStatusColor(car), fontSize: "12px", fontWeight: "600" }}>
+          <div
+            style={{
+              color: getCarStatusColor(car),
+              fontSize: "12px",
+              fontWeight: "600",
+            }}
+          >
             {getCarStatusText(car)}
           </div>
           {car.isStaked && stakingRewards.has(car.id) && (
-            <div style={{ color: "#a78bfa", fontSize: "11px", marginTop: "2px" }}>
+            <div
+              style={{ color: "#a78bfa", fontSize: "11px", marginTop: "2px" }}
+            >
               Pending: +{stakingRewards.get(car.id)} XP
             </div>
           )}
@@ -445,19 +467,27 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
               disabled={actionInProgress === `staking-${car.id}` || isPending}
               style={{
                 flex: 1,
-                background: actionInProgress === `staking-${car.id}` ? "#6b7280" : "#10b981",
+                background:
+                  actionInProgress === `staking-${car.id}`
+                    ? "#6b7280"
+                    : "#10b981",
                 color: "white",
                 border: "none",
                 padding: "8px 16px",
                 borderRadius: "8px",
-                cursor: actionInProgress === `staking-${car.id}` ? "not-allowed" : "pointer",
+                cursor:
+                  actionInProgress === `staking-${car.id}`
+                    ? "not-allowed"
+                    : "pointer",
                 fontSize: "14px",
                 fontWeight: "600",
                 transition: "all 0.3s ease",
                 opacity: actionInProgress === `staking-${car.id}` ? 0.6 : 1,
               }}
             >
-              {actionInProgress === `staking-${car.id}` ? "⏳ Staking..." : "⚡ Stake Car"}
+              {actionInProgress === `staking-${car.id}`
+                ? "⏳ Staking..."
+                : "⚡ Stake Car"}
             </button>
           ) : (
             <button
@@ -465,19 +495,27 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
               disabled={actionInProgress === `unstaking-${car.id}` || isPending}
               style={{
                 flex: 1,
-                background: actionInProgress === `unstaking-${car.id}` ? "#6b7280" : "#f59e0b",
+                background:
+                  actionInProgress === `unstaking-${car.id}`
+                    ? "#6b7280"
+                    : "#f59e0b",
                 color: "white",
                 border: "none",
                 padding: "8px 16px",
                 borderRadius: "8px",
-                cursor: actionInProgress === `unstaking-${car.id}` ? "not-allowed" : "pointer",
+                cursor:
+                  actionInProgress === `unstaking-${car.id}`
+                    ? "not-allowed"
+                    : "pointer",
                 fontSize: "14px",
                 fontWeight: "600",
                 transition: "all 0.3s ease",
                 opacity: actionInProgress === `unstaking-${car.id}` ? 0.6 : 1,
               }}
             >
-              {actionInProgress === `unstaking-${car.id}` ? "⏳ Unstaking..." : "💰 Claim & Unstake"}
+              {actionInProgress === `unstaking-${car.id}`
+                ? "⏳ Unstaking..."
+                : "💰 Claim & Unstake"}
             </button>
           )}
         </div>
@@ -573,7 +611,10 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                 cursor: "pointer",
                 fontSize: "14px",
                 fontWeight: "600",
-                borderBottom: activeTab === tab.id ? "2px solid #fbbf24" : "2px solid transparent",
+                borderBottom:
+                  activeTab === tab.id
+                    ? "2px solid #fbbf24"
+                    : "2px solid transparent",
                 transition: "all 0.3s ease",
               }}
             >
@@ -586,8 +627,12 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
           {playerCars.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
               <div style={{ fontSize: "60px", marginBottom: "16px" }}>🏗️</div>
-              <h3 style={{ color: "white", marginBottom: "8px" }}>No Cars Yet</h3>
-              <p style={{ color: "#9ca3af" }}>Mint your first car to get started!</p>
+              <h3 style={{ color: "white", marginBottom: "8px" }}>
+                No Cars Yet
+              </h3>
+              <p style={{ color: "#9ca3af" }}>
+                Mint your first car to get started!
+              </p>
             </div>
           ) : (
             <>
@@ -596,11 +641,12 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(280px, 1fr))",
                       gap: "20px",
                     }}
                   >
-                    {playerCars.map(car => renderCarCard(car, true))}
+                    {playerCars.map((car) => renderCarCard(car, true))}
                   </div>
                 </div>
               )}
@@ -608,11 +654,14 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
               {activeTab === "staking" && (
                 <div>
                   <div style={{ marginBottom: "24px" }}>
-                    <h3 style={{ color: "white", marginBottom: "8px" }}>⚡ Staking Overview</h3>
+                    <h3 style={{ color: "white", marginBottom: "8px" }}>
+                      ⚡ Staking Overview
+                    </h3>
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(200px, 1fr))",
                         gap: "16px",
                         marginBottom: "24px",
                       }}
@@ -625,10 +674,18 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                           textAlign: "center",
                         }}
                       >
-                        <div style={{ color: "#fbbf24", fontSize: "24px", fontWeight: "bold" }}>
+                        <div
+                          style={{
+                            color: "#fbbf24",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                          }}
+                        >
                           {stakedCars.length}
                         </div>
-                        <div style={{ color: "#9ca3af", fontSize: "12px" }}>Cars Staked</div>
+                        <div style={{ color: "#9ca3af", fontSize: "12px" }}>
+                          Cars Staked
+                        </div>
                       </div>
                       <div
                         style={{
@@ -638,10 +695,21 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                           textAlign: "center",
                         }}
                       >
-                        <div style={{ color: "#a78bfa", fontSize: "24px", fontWeight: "bold" }}>
-                          {Array.from(stakingRewards.values()).reduce((sum, reward) => sum + reward, 0)}
+                        <div
+                          style={{
+                            color: "#a78bfa",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {Array.from(stakingRewards.values()).reduce(
+                            (sum, reward) => sum + reward,
+                            0
+                          )}
                         </div>
-                        <div style={{ color: "#9ca3af", fontSize: "12px" }}>Pending XP</div>
+                        <div style={{ color: "#9ca3af", fontSize: "12px" }}>
+                          Pending XP
+                        </div>
                       </div>
                       <div
                         style={{
@@ -651,32 +719,47 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                           textAlign: "center",
                         }}
                       >
-                        <div style={{ color: "#10b981", fontSize: "24px", fontWeight: "bold" }}>
+                        <div
+                          style={{
+                            color: "#10b981",
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                          }}
+                        >
                           100
                         </div>
-                        <div style={{ color: "#9ca3af", fontSize: "12px" }}>XP per Day</div>
+                        <div style={{ color: "#9ca3af", fontSize: "12px" }}>
+                          XP per Day
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {stakedCars.length > 0 ? (
                     <div>
-                      <h4 style={{ color: "white", marginBottom: "16px" }}>🔥 Currently Staked</h4>
+                      <h4 style={{ color: "white", marginBottom: "16px" }}>
+                        🔥 Currently Staked
+                      </h4>
                       <div
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                          gridTemplateColumns:
+                            "repeat(auto-fit, minmax(280px, 1fr))",
                           gap: "20px",
                           marginBottom: "32px",
                         }}
                       >
-                        {stakedCars.map(car => renderCarCard(car, true))}
+                        {stakedCars.map((car) => renderCarCard(car, true))}
                       </div>
                     </div>
                   ) : (
                     <div style={{ textAlign: "center", padding: "40px" }}>
-                      <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚡</div>
-                      <h3 style={{ color: "white", marginBottom: "8px" }}>No Cars Staked</h3>
+                      <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+                        ⚡
+                      </div>
+                      <h3 style={{ color: "white", marginBottom: "8px" }}>
+                        No Cars Staked
+                      </h3>
                       <p style={{ color: "#9ca3af" }}>
                         Stake your cars to earn 100 XP per day passively!
                       </p>
@@ -685,21 +768,23 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
 
                   {availableCars.length > 0 && (
                     <div>
-                      <h4 style={{ color: "white", marginBottom: "16px" }}>🚗 Available to Stake</h4>
+                      <h4 style={{ color: "white", marginBottom: "16px" }}>
+                        🚗 Available to Stake
+                      </h4>
                       <div
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                          gridTemplateColumns:
+                            "repeat(auto-fit, minmax(280px, 1fr))",
                           gap: "20px",
                         }}
                       >
-                        {availableCars.map(car => renderCarCard(car, true))}
+                        {availableCars.map((car) => renderCarCard(car, true))}
                       </div>
                     </div>
                   )}
                 </div>
               )}
-
             </>
           )}
         </div>
@@ -721,11 +806,14 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
           <div
             key={notification.id}
             style={{
-              background: 
-                notification.type === "success" ? "linear-gradient(45deg, #10b981, #059669)" :
-                notification.type === "error" ? "linear-gradient(45deg, #ef4444, #dc2626)" :
-                notification.type === "loading" ? "linear-gradient(45deg, #8b5cf6, #7c3aed)" :
-                "linear-gradient(45deg, #3b82f6, #2563eb)",
+              background:
+                notification.type === "success"
+                  ? "linear-gradient(45deg, #10b981, #059669)"
+                  : notification.type === "error"
+                  ? "linear-gradient(45deg, #ef4444, #dc2626)"
+                  : notification.type === "loading"
+                  ? "linear-gradient(45deg, #8b5cf6, #7c3aed)"
+                  : "linear-gradient(45deg, #3b82f6, #2563eb)",
               color: "white",
               padding: "16px",
               borderRadius: "12px",
@@ -737,7 +825,9 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
             }}
             onClick={() => removeNotification(notification.id)}
           >
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}
+            >
               <div style={{ fontSize: "20px", marginTop: "2px" }}>
                 {notification.type === "success" && "✅"}
                 {notification.type === "error" && "❌"}
@@ -745,10 +835,18 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                 {notification.type === "info" && "ℹ️"}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: "bold", marginBottom: "4px", fontSize: "14px" }}>
+                <div
+                  style={{
+                    fontWeight: "bold",
+                    marginBottom: "4px",
+                    fontSize: "14px",
+                  }}
+                >
                   {notification.title}
                 </div>
-                <div style={{ fontSize: "13px", opacity: 0.9, lineHeight: "1.4" }}>
+                <div
+                  style={{ fontSize: "13px", opacity: 0.9, lineHeight: "1.4" }}
+                >
                   {notification.message}
                 </div>
               </div>

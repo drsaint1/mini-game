@@ -9,8 +9,8 @@ import { readContract } from "wagmi/actions";
 import { parseEther, formatEther } from "viem";
 import { config } from "../config/web3Config";
 
-export const RACING_CONTRACT_ADDRESS =
-  "0xEb2B49231eBCf976Ee8c8726669b499A1C2B751E" as const;
+export const RACING_CONTRACT_ADDRESS = import.meta.env
+  .VITE_RACING_CONTRACT_ADDRESS as `0x${string}`;
 
 export const RACING_ABI = [
   {
@@ -659,7 +659,7 @@ export const useRacingContract = () => {
       try {
         const cars: CarNFT[] = [];
 
-        // Fetch actual car data from contract
+        // Fetch  car data from contract
         for (const carId of playerCarsData) {
           try {
             const contractCarData = await readContract(config, {
@@ -737,10 +737,8 @@ export const useRacingContract = () => {
             setSelectedCar(null);
           }
         } else if (selectedCar && cars.length > 0) {
-          // Check if currently selected car is still available (not staked)
           const currentCar = cars.find((car) => car.id === selectedCar.id);
           if (currentCar && currentCar.isStaked) {
-            // Current car became staked, switch to an available one
             const availableCar = cars.find((car) => !car.isStaked);
             if (availableCar) {
               setSelectedCar(availableCar);
@@ -768,7 +766,6 @@ export const useRacingContract = () => {
     loadCarDetails();
   }, [playerCarsData, selectedCar]);
 
-  // Update player stats when data changes
   useEffect(() => {
     if (playerStatsData) {
       setPlayerStats({
@@ -1101,7 +1098,6 @@ export const useRacingContract = () => {
   };
 
   return {
-    // State
     selectedCar,
     playerCars,
     playerStats,

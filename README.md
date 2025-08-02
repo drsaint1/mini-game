@@ -1,6 +1,8 @@
 # EtherLink Racing Game - Setup Guide
 
-## Quick Start for Judges
+Check full game documentation IN GAME_DOCUMENTATION.md
+
+## Quick Start
 
 This guide will help you get the EtherLink Racing Game running locally in under 10 minutes.
 
@@ -19,7 +21,25 @@ git clone <repository-url>
 cd my-etherlink-game
 ```
 
-set up .env file with private key (optional for contract redeploment)
+Set up .env file with private key (optional for contract redeploment)
+
+```bash
+# WalletConnect Project ID
+
+VITE_WALLETCONNECT_PROJECT_ID="WalletConnect Project ID"
+
+# Network Configuration
+
+VITE_ETHERLINK_RPC_URL=https://node.ghostnet.etherlink.com
+VITE_ETHERLINK_CHAIN_ID=128123
+
+# Contract Addresses - Update these after deployment
+
+VITE_RACING_CONTRACT_ADDRESS="new racing contract address"
+VITE_RACING_TOKEN_ADDRESS="new token contract address"
+VITE_TOURNAMENTS_CONTRACT_ADDRESS="new tournament contract address"
+PRIVATE_KEY="your evm wallet private key without 0x prefix"
+```
 
 ### Step 2: Install Dependencies
 
@@ -179,4 +199,5 @@ The game consists of:
 - **Web3 Integration**: Wagmi + Viem for blockchain interaction
 - **3D Graphics**: Three.js for racing visualization
 
+Check full game documentation IN GAME_DOCUMENTATION.md
 Ready to race? Let's go! 🏎️

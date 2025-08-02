@@ -1,6 +1,4 @@
-// src/contracts/abi.ts - Single source of truth for contract ABI
 export const RACING_CONTRACT_ABI = [
-  // CAR MINTING FUNCTIONS
   {
     inputs: [],
     name: "mintStarterCar",
@@ -126,7 +124,7 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // VIEW FUNCTIONS - Player Data
+ 
   {
     inputs: [{ internalType: "address", name: "player", type: "address" }],
     name: "getPlayerCars",
@@ -162,7 +160,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // VIEW FUNCTIONS - Car Data (FIXED WITH ALL FIELDS INCLUDING NAME)
   {
     inputs: [{ internalType: "uint256", name: "carId", type: "uint256" }],
     name: "getCarDetails",
@@ -191,7 +188,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // VIEW FUNCTIONS - Tournament Data
   {
     inputs: [],
     name: "nextTournamentId",
@@ -467,9 +463,8 @@ export const RACING_CONTRACT_ABI = [
   },
 ] as const;
 
-// Contract addresses - Updated with token tracking (August 1, 2025)
 export const CONTRACT_ADDRESSES = {
-  RACING: "0xEb2B49231eBCf976Ee8c8726669b499A1C2B751E", // Updated racing contract with gameplay token tracking
-  TOURNAMENTS: "0xf46ecfF91e0a0747D7184c71AaA782DC15509B4C", 
-  TOKEN: "0xC346d231156E6fb9b8aC384D0C39A53DD8DbEA31", // Deployed RacingToken contract
+  RACING: import.meta.env.VITE_RACING_CONTRACT_ADDRESS as `0x${string}`,
+  TOURNAMENTS: import.meta.env.VITE_TOURNAMENTS_CONTRACT_ADDRESS as `0x${string}`,
+  TOKEN: import.meta.env.VITE_RACING_TOKEN_ADDRESS as `0x${string}`,
 } as const;

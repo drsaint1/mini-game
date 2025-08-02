@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { formatEther, parseEther } from "viem";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { readContract } from "wagmi/actions";
@@ -666,7 +666,6 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
   // Blockchain hooks
   const { writeContractAsync } = useWriteContract();
 
-  // Toast management functions
   const showToast = (
     message: string,
     type: "success" | "error" | "warning" | "info"
@@ -674,7 +673,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
 
-    // Auto-remove toast after 4 seconds
+    
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, 4000);
@@ -684,9 +683,9 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  // Load tournament results including winners and participant scores
+ 
   const loadTournamentResults = async (tournament: Tournament) => {
-    if (tournament.status !== "ended" || !tournament.finalized) {
+    if (getCurrentTournamentStatus(tournament) !== "ended" || !tournament.finalized) {
       showToast(
         "Tournament results are only available for completed tournaments",
         "warning"
@@ -708,7 +707,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     if (!address) return false;
 
     try {
-      // Use the new accurate tournament results system
+
       const playerTournamentData = await readContract(config, {
         address: TOURNAMENTS_CONTRACT_ADDRESS,
         abi: TOURNAMENTS_ABI,
@@ -844,8 +843,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
       functionName: "nextTournamentId",
     });
 
-  useEffect(() => {
-    const loadTournaments = async () => {
+  const loadTournaments = useCallback(async () => {
       if (!isConnected || !nextTournamentId) {
         setTournaments([]);
         return;
@@ -860,7 +858,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
         const joinedTournamentIds = new Set<number>();
         const completedTournamentIds = new Set<number>();
 
-        // Load real tournaments from blockchain
+      
         console.log(
           "🏆 Loading tournaments, count:",
           Number(nextTournamentId || 0)
@@ -937,7 +935,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                 startTime: startTimeMs,
                 endTime: endTimeMs,
                 participantCount: Number(participantCount),
-                maxParticipants: 50, // default
+                maxParticipants: 50, 
                 finalized: finalized,
                 status: status,
               };
@@ -995,19 +993,22 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
           if (aJoinedNotCompleted && !bJoinedNotCompleted) return -1;
           if (bJoinedNotCompleted && !aJoinedNotCompleted) return 1;
 
-          if (a.status === "ended" && b.status !== "ended") return 1;
-          if (b.status === "ended" && a.status !== "ended") return -1;
+          if (a.status === "active" && b.status !== "active") return -1;
+          if (b.status === "active" && a.status !== "active") return 1;
+
+          if (a.status === "upcoming" && b.status === "ended") return -1;
+          if (b.status === "upcoming" && a.status === "ended") return 1;
+
+          if (a.status === "active" && b.status === "active") {
+            return a.endTime - b.endTime;
+          }
+
+          if (a.status === "upcoming" && b.status === "upcoming") {
+            return a.startTime - b.startTime;
+          }
 
           if (a.status === "ended" && b.status === "ended") {
             return b.endTime - a.endTime;
-          }
-
-          if (a.status !== "ended" && b.status !== "ended") {
-            const timeRemainingA =
-              a.status === "active" ? a.endTime - now : a.startTime - now;
-            const timeRemainingB =
-              b.status === "active" ? b.endTime - now : b.startTime - now;
-            return timeRemainingA - timeRemainingB;
           }
 
           return 0;
@@ -1037,9 +1038,9 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
         );
 
         console.log(
-          `✅ Successfully loaded ${sortedTournaments.length} tournaments`
+          `✅ Successfully loaded ${loadedTournaments.length} tournaments`
         );
-        setTournaments(sortedTournaments);
+        setTournaments(loadedTournaments);
       } catch (error) {
         console.error("❌ Failed to load tournaments:", error);
         showToast(
@@ -1051,13 +1052,41 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
         console.log("🏁 Tournament loading complete");
         setLoading(false);
       }
-    };
+  }, [isConnected, nextTournamentId, address, selectedCarId]);
 
+  useEffect(() => {
     loadTournaments();
 
     const interval = setInterval(loadTournaments, 60000);
     return () => clearInterval(interval);
-  }, [isConnected, nextTournamentId, address, selectedCarId]);
+  }, [loadTournaments]);
+
+  const getCurrentTournamentStatus = (tournament: Tournament): "upcoming" | "active" | "ended" => {
+    const now = Date.now();
+    return now < tournament.startTime
+      ? "upcoming"
+      : now <= tournament.endTime && !tournament.finalized
+      ? "active"
+      : "ended";
+  };
+
+  const [, forceUpdate] = useState({});
+
+  useEffect(() => {
+    const hasUpcomingTournaments = tournaments.some(
+      tournament => getCurrentTournamentStatus(tournament) === "upcoming" && 
+      Date.now() < tournament.startTime && 
+      tournament.startTime - Date.now() < 600000
+    );
+
+    if (hasUpcomingTournaments) {
+      const quickInterval = setInterval(() => {
+        forceUpdate({});
+      }, 1000);
+      
+      return () => clearInterval(quickInterval);
+    }
+  }, [tournaments]);
 
   useEffect(() => {
     const checkAvailableCars = async () => {
@@ -1470,6 +1499,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                   Number(nextTournamentId || 0)
                 );
                 await refetchTournamentCount();
+                await loadTournaments();
               }}
               disabled={loading}
               style={{
@@ -1626,7 +1656,42 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
             <div
               style={{ display: "flex", flexDirection: "column", gap: "20px" }}
             >
-              {tournaments.map((tournament) => (
+              {tournaments
+                .slice()
+                .sort((a, b) => {
+                  const now = Date.now();
+                  const aStatus = getCurrentTournamentStatus(a);
+                  const bStatus = getCurrentTournamentStatus(b);
+
+                  const aJoinedNotCompleted =
+                    joinedTournaments.has(a.id) && !completedTournaments.has(a.id);
+                  const bJoinedNotCompleted =
+                    joinedTournaments.has(b.id) && !completedTournaments.has(b.id);
+
+                  if (aJoinedNotCompleted && !bJoinedNotCompleted) return -1;
+                  if (bJoinedNotCompleted && !aJoinedNotCompleted) return 1;
+
+                  if (aStatus === "active" && bStatus !== "active") return -1;
+                  if (bStatus === "active" && aStatus !== "active") return 1;
+
+                  if (aStatus === "upcoming" && bStatus === "ended") return -1;
+                  if (bStatus === "upcoming" && aStatus === "ended") return 1;
+
+                  if (aStatus === "active" && bStatus === "active") {
+                    return a.endTime - b.endTime;
+                  }
+
+                  if (aStatus === "upcoming" && bStatus === "upcoming") {
+                    return a.startTime - b.startTime;
+                  }
+
+                  if (aStatus === "ended" && bStatus === "ended") {
+                    return b.endTime - a.endTime;
+                  }
+
+                  return 0;
+                })
+                .map((tournament) => (
                 <div
                   key={tournament.id}
                   style={{
@@ -1726,11 +1791,11 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                           fontWeight: "bold",
                           color: "white",
                         }}
-                        className={getStatusColor(tournament.status)}
+                        className={getStatusColor(getCurrentTournamentStatus(tournament))}
                       >
-                        <span>{getStatusIcon(tournament.status)}</span>
-                        {tournament.status.charAt(0).toUpperCase() +
-                          tournament.status.slice(1)}
+                        <span>{getStatusIcon(getCurrentTournamentStatus(tournament))}</span>
+                        {getCurrentTournamentStatus(tournament).charAt(0).toUpperCase() +
+                          getCurrentTournamentStatus(tournament).slice(1)}
                       </div>
                     </div>
                     <div
@@ -1854,9 +1919,9 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                           marginBottom: "5px",
                         }}
                       >
-                        {tournament.status === "upcoming"
+                        {getCurrentTournamentStatus(tournament) === "upcoming"
                           ? "Starts In"
-                          : tournament.status === "active"
+                          : getCurrentTournamentStatus(tournament) === "active"
                           ? "Ends In"
                           : "Ended"}
                       </div>
@@ -1867,9 +1932,9 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                           fontWeight: "bold",
                         }}
                       >
-                        {tournament.status === "upcoming"
+                        {getCurrentTournamentStatus(tournament) === "upcoming"
                           ? formatTimeRemaining(tournament.startTime)
-                          : tournament.status === "active"
+                          : getCurrentTournamentStatus(tournament) === "active"
                           ? formatTimeRemaining(tournament.endTime)
                           : "Finished"}
                       </div>
@@ -1895,7 +1960,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                       🏆 Prize Distribution: 🥇 50% • 🥈 30% • 🥉 20%
                     </div>
                     <div style={{ display: "flex", gap: "10px" }}>
-                      {tournament.status === "upcoming" && (
+                      {getCurrentTournamentStatus(tournament) === "upcoming" && (
                         <>
                           {!joinedTournaments.has(tournament.id) ? (
                             <button
@@ -1903,12 +1968,14 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               disabled={
                                 loading ||
                                 tournament.participantCount >=
-                                  tournament.maxParticipants
+                                  tournament.maxParticipants ||
+                                Date.now() < tournament.startTime
                               }
                               style={{
                                 background:
                                   tournament.participantCount >=
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants ||
+                                  Date.now() < tournament.startTime
                                     ? "rgba(107,114,128,0.5)"
                                     : "linear-gradient(45deg, #3b82f6, #06b6d4)",
                                 color: "white",
@@ -1919,20 +1986,23 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                                 fontWeight: "bold",
                                 cursor:
                                   tournament.participantCount >=
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants ||
+                                  Date.now() < tournament.startTime
                                     ? "not-allowed"
                                     : "pointer",
                                 transition: "all 0.3s ease",
                                 opacity:
                                   tournament.participantCount >=
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants ||
+                                  Date.now() < tournament.startTime
                                     ? 0.5
                                     : 1,
                               }}
                               onMouseEnter={(e) => {
                                 if (
                                   tournament.participantCount <
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants &&
+                                  Date.now() >= tournament.startTime
                                 ) {
                                   e.currentTarget.style.transform =
                                     "translateY(-2px)";
@@ -1943,7 +2013,8 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               onMouseLeave={(e) => {
                                 if (
                                   tournament.participantCount <
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants &&
+                                  Date.now() >= tournament.startTime
                                 ) {
                                   e.currentTarget.style.transform =
                                     "translateY(0px)";
@@ -1954,6 +2025,8 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               {tournament.participantCount >=
                               tournament.maxParticipants
                                 ? "🔒 Full"
+                                : Date.now() < tournament.startTime
+                                ? "⏰ Starting Soon..."
                                 : "💰 Join Now (Pay Entry Fee)"}
                             </button>
                           ) : (
@@ -1976,7 +2049,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                           )}
                         </>
                       )}
-                      {tournament.status === "active" && (
+                      {getCurrentTournamentStatus(tournament) === "active" && (
                         <>
                           {joinedTournaments.has(tournament.id) ? (
                             <>
@@ -2034,12 +2107,14 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               disabled={
                                 loading ||
                                 tournament.participantCount >=
-                                  tournament.maxParticipants
+                                  tournament.maxParticipants ||
+                                Date.now() < tournament.startTime
                               }
                               style={{
                                 background:
                                   tournament.participantCount >=
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants ||
+                                  Date.now() < tournament.startTime
                                     ? "rgba(107,114,128,0.5)"
                                     : "linear-gradient(45deg, #3b82f6, #06b6d4)",
                                 color: "white",
@@ -2050,20 +2125,23 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                                 fontWeight: "bold",
                                 cursor:
                                   tournament.participantCount >=
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants ||
+                                  Date.now() < tournament.startTime
                                     ? "not-allowed"
                                     : "pointer",
                                 transition: "all 0.3s ease",
                                 opacity:
                                   tournament.participantCount >=
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants ||
+                                  Date.now() < tournament.startTime
                                     ? 0.5
                                     : 1,
                               }}
                               onMouseEnter={(e) => {
                                 if (
                                   tournament.participantCount <
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants &&
+                                  Date.now() >= tournament.startTime
                                 ) {
                                   e.currentTarget.style.transform =
                                     "translateY(-2px)";
@@ -2074,7 +2152,8 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               onMouseLeave={(e) => {
                                 if (
                                   tournament.participantCount <
-                                  tournament.maxParticipants
+                                    tournament.maxParticipants &&
+                                  Date.now() >= tournament.startTime
                                 ) {
                                   e.currentTarget.style.transform =
                                     "translateY(0px)";
@@ -2085,12 +2164,14 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               {tournament.participantCount >=
                               tournament.maxParticipants
                                 ? "🔒 Full"
+                                : Date.now() < tournament.startTime
+                                ? "⏰ Starting Soon..."
                                 : "💰 Join & Race (Pay Entry Fee)"}
                             </button>
                           )}
                         </>
                       )}
-                      {tournament.status === "ended" && (
+                      {getCurrentTournamentStatus(tournament) === "ended" && (
                         <button
                           onClick={() => loadTournamentResults(tournament)}
                           style={{

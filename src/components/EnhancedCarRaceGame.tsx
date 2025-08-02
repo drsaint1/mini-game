@@ -517,7 +517,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       setDailyChallengeCompleted(true);
     } else {
       setDailyChallengeCompleted(false);
-      // Reset for new day
+
       if (savedChallengeDate !== today) {
         localStorage.setItem("etherlinkRacing_dailyChallengeDate", today);
         localStorage.setItem(
@@ -584,7 +584,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     );
   };
 
-  // State from working version
   const [showMissionComplete, setShowMissionComplete] = useState<string | null>(
     null
   );
@@ -637,10 +636,9 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     abi: RACING_TOKEN_ABI,
     eventName: "Transfer",
     args: {
-      to: address, // Only watch for tokens sent TO this address
+      to: address,
     },
     onLogs(_logs) {
-      // Refetch token balance when tokens are received
       setTimeout(() => {
         refetchTokenBalance();
       }, 1000);
@@ -691,7 +689,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
         functionName: "claimRaceTokens",
         args: [address],
       });
-      // Refresh token data after claiming
+
       refetchPendingTokens();
       refetchTokenBalance();
       showPopup("🪙 Race tokens claimed successfully!");
@@ -828,7 +826,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     parent2Id: number
   ) => {
     try {
-      // Find the parent cars
       const parent1 = playerCars.find((car) => car.id === parent1Id);
       const parent2 = playerCars.find((car) => car.id === parent2Id);
 
@@ -849,7 +846,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
         "💳 Please confirm breeding transaction in your wallet..."
       );
 
-      // Verify ownership on-chain before breeding
       try {
         const { readContract } = await import("wagmi/actions");
         const { config } = await import("../config/web3Config");
@@ -1178,7 +1174,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
             BigInt(gameStatsRef.current.distance),
             BigInt(gameStatsRef.current.obstaclesAvoided),
             BigInt(gameStatsRef.current.bonusBoxesCollected),
-            BigInt(0), // tournament ID
+            BigInt(0),
           ],
         });
       }
@@ -1191,8 +1187,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       } else {
         showPopup("⏳ Submitting to Etherlink blockchain...");
       }
-
-      // The actual confirmation is handled by the useEffect with useWaitForTransactionReceipt
     } catch (error) {
       setSubmissionStatus("error");
       setIsSubmittingScore(false);
@@ -1595,7 +1589,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
         );
 
         if (challengeCompleted) {
-          // Mark challenge as completed and store reward for submission
           const today = new Date().toDateString();
           localStorage.setItem("etherlinkRacing_dailyChallengeDate", today);
           localStorage.setItem(
@@ -1999,12 +1992,12 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     const carGroup = new THREE.Group();
 
     const bodyGeometry = new THREE.BoxGeometry(2.2, 0.6, 3);
-    // Use the new car type-based color system
-    let carColor = 0x666666; // Default gray
+
+    let carColor = 0x666666;
     if (selectedCar) {
-      carColor = getCarColor(selectedCar); // Use the new color function
+      carColor = getCarColor(selectedCar);
     } else if (isConnected) {
-      carColor = 0xff4444; // Red if connected but no car
+      carColor = 0xff4444;
     }
 
     const bodyMaterial = new THREE.MeshLambertMaterial({
@@ -2025,7 +2018,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     }
 
     const roofGeometry = new THREE.BoxGeometry(1.8, 0.4, 1.5);
-    // Make roof slightly darker than body
+
     const roofColor = new THREE.Color(carColor).multiplyScalar(0.7);
     const roofMaterial = new THREE.MeshLambertMaterial({
       color: roofColor,
@@ -2104,7 +2097,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     applyCarStats,
   ]);
 
-  // Setup controls - EXACT FROM WORKING VERSION
   const setupControls = useCallback(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       switch (event.code) {
@@ -2185,7 +2177,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     };
   }, []);
 
-  // Start/stop game loop when gameRunning changes
   useEffect(() => {
     console.log("🎮 Game running changed to:", gameRunning);
     if (gameRunning && !animationIdRef.current) {
@@ -2206,11 +2197,11 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
         isInvisible: false,
         invisibilityTimer: 0,
         currentScore: 0,
-        // Reset car stat modifiers
+
         speedBonus: 1.0,
         handlingBonus: 1.0,
         accelerationBonus: 1.0,
-        maxSpeedForCar: 2.0, // Default for no car selected
+        maxSpeedForCar: 2.0,
       };
       setTimeout(() => {
         animate();
@@ -2242,13 +2233,11 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     }
   }, [isConnected, showMenu, gameOver, selectedCar, initializeGame]);
 
-  // Setup controls - FROM WORKING VERSION
   useEffect(() => {
     const cleanup = setupControls();
     return cleanup;
   }, [setupControls]);
 
-  // Cleanup
   useEffect(() => {
     return () => {
       if (animationIdRef.current) {
@@ -2312,7 +2301,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     return null;
   }
 
-  // Minting screen for users without cars
   if (
     isConnected &&
     playerCars.length === 0 &&
@@ -3193,7 +3181,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                     fontWeight: "bold",
                   }}
                 >
-                  🪙 RACE Tokens (ERC20)
+                  🪙 RACE Tokens
                 </div>
                 {pendingTokens > 0 && (
                   <button
@@ -4759,7 +4747,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                       <div
                         key={car.id}
                         onClick={() => {
-                          // Only allow selection if car is eligible for breeding
                           if (!isEligible) return;
 
                           if (selectedParent1 === null) {

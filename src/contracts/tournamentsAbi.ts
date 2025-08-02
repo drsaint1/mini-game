@@ -1,5 +1,6 @@
 // src/contracts/tournamentsAbi.ts - EtherlinkTournaments Contract ABI (Updated with 5-minute start time)
-export const TOURNAMENTS_CONTRACT_ADDRESS = "0xAF2950F8b0B1479A16E478C712F4dbB36Fa28791" as const;
+export const TOURNAMENTS_CONTRACT_ADDRESS = 
+  import.meta.env.VITE_TOURNAMENTS_CONTRACT_ADDRESS as `0x${string}`;
 
 export const TOURNAMENTS_ABI = [
   {
