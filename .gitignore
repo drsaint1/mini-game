@@ -120,3 +120,7 @@ playwright-report/
 
 # Specific component files to ignore
 src/components/CarRaceGame.tsx
+# Ignore environment and local config files
+.env
+.env.*
+.claude/
