@@ -737,17 +737,21 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
             onNavigateToTournaments();
           }, 2000);
         }, 3000);
-      } else if (
-        isDailyChallengeRace &&
-        currentDailyChallenge &&
-        onNavigateToMenu
-      ) {
-        setTimeout(() => {
-          showPopup("🔒 Returning to main menu to prevent exploits...");
+      } else if (currentDailyChallenge && onNavigateToMenu) {
+        const challengeCompleted = checkChallengeCompletion(currentDailyChallenge);
+        
+        if (challengeCompleted && (isDailyChallengeRace || !tournamentId)) {
           setTimeout(() => {
-            onNavigateToMenu();
-          }, 2000);
-        }, 3000);
+            showPopup("🔒 Returning to main menu to prevent exploits...");
+            setTimeout(() => {
+              setShowMenu(true);
+              setGameRunning(false);
+              setGameOver(false);
+              setIsDailyChallengeRace(false);
+              onNavigateToMenu();
+            }, 2000);
+          }, 3000);
+        }
       }
 
       setTimeout(() => {

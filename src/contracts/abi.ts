@@ -14,7 +14,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // RACE SUBMISSION FUNCTIONS
   {
     inputs: [
       { internalType: "address", name: "player", type: "address" },
@@ -47,7 +46,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // CAR BREEDING & STAKING
   {
     inputs: [
       { internalType: "uint256", name: "parent1Id", type: "uint256" },
@@ -73,7 +71,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // TOURNAMENT FUNCTIONS
   {
     inputs: [
       { internalType: "string", name: "name", type: "string" },
@@ -106,7 +103,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // REWARDS & TOKENS
   {
     inputs: [{ internalType: "address", name: "player", type: "address" }],
     name: "claimRaceTokens",
@@ -124,7 +120,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
- 
   {
     inputs: [{ internalType: "address", name: "player", type: "address" }],
     name: "getPlayerCars",
@@ -271,7 +266,6 @@ export const RACING_CONTRACT_ABI = [
     type: "function",
   },
 
-  // EVENTS
   {
     anonymous: false,
     inputs: [
@@ -465,6 +459,7 @@ export const RACING_CONTRACT_ABI = [
 
 export const CONTRACT_ADDRESSES = {
   RACING: import.meta.env.VITE_RACING_CONTRACT_ADDRESS as `0x${string}`,
-  TOURNAMENTS: import.meta.env.VITE_TOURNAMENTS_CONTRACT_ADDRESS as `0x${string}`,
+  TOURNAMENTS: import.meta.env
+    .VITE_TOURNAMENTS_CONTRACT_ADDRESS as `0x${string}`,
   TOKEN: import.meta.env.VITE_RACING_TOKEN_ADDRESS as `0x${string}`,
 } as const;
