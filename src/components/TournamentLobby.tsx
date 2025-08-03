@@ -962,8 +962,8 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
         });
       }
 
-      console.log("🚀 Starting tournament loading process...");
-      setLoading(true);
+      setJoinedTournaments(joinedTournamentIds);
+      setCompletedTournaments(completedTournamentIds);
 
       console.log(
         `✅ Successfully loaded ${loadedTournaments.length} tournaments`
@@ -1587,7 +1587,6 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
               {tournaments
                 .slice()
                 .sort((a, b) => {
-                  const now = Date.now();
                   const aStatus = getCurrentTournamentStatus(a);
                   const bStatus = getCurrentTournamentStatus(b);
 
