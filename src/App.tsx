@@ -24,6 +24,7 @@ function GameWrapper() {
   const [activeTournamentId, setActiveTournamentId] = useState<number | null>(
     null
   );
+  const [completedTournaments, setCompletedTournaments] = useState<Set<number>>(new Set());
   const [mintingStatus, setMintingStatus] = useState<
     "idle" | "wallet_confirm" | "confirming" | "success" | "error" | "rejected"
   >("idle");
@@ -84,7 +85,10 @@ function GameWrapper() {
     setCurrentView("racing");
   };
 
-  const handleTournamentCompleted = (_tournamentId: number) => {};
+  const handleTournamentCompleted = (tournamentId: number) => {
+    console.log(`🏆 Tournament ${tournamentId} completed! Marking as completed.`);
+    setCompletedTournaments(prev => new Set([...prev, tournamentId]));
+  };
 
   const handleNavigateToTournaments = () => {
     setActiveTournamentId(null);
@@ -733,6 +737,7 @@ function GameWrapper() {
           onStartRace={handleStartRace}
           onClose={() => setCurrentView("menu")}
           selectedCarId={selectedCar?.id}
+          completedTournamentsFromApp={completedTournaments}
         />
       )}
 

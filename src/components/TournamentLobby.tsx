@@ -156,6 +156,7 @@ interface TournamentLobbyProps {
   onStartRace: (tournamentId: number) => void;
   onClose: () => void;
   selectedCarId?: number;
+  completedTournamentsFromApp?: Set<number>;
 }
 
 interface TournamentResultsModalProps {
@@ -636,6 +637,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
   onStartRace,
   onClose,
   selectedCarId,
+  completedTournamentsFromApp,
 }) => {
   const { isConnected, address } = useAccount();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -963,7 +965,12 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
       }
 
       setJoinedTournaments(joinedTournamentIds);
-      setCompletedTournaments(completedTournamentIds);
+
+      const allCompletedTournaments = new Set([
+        ...completedTournamentIds,
+        ...(completedTournamentsFromApp || []),
+      ]);
+      setCompletedTournaments(allCompletedTournaments);
 
       console.log(
         `✅ Successfully loaded ${loadedTournaments.length} tournaments`
@@ -977,7 +984,13 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
       console.log("🏁 Tournament loading complete");
       setLoading(false);
     }
-  }, [isConnected, nextTournamentId, address, selectedCarId]);
+  }, [
+    isConnected,
+    nextTournamentId,
+    address,
+    selectedCarId,
+    completedTournamentsFromApp,
+  ]);
 
   useEffect(() => {
     loadTournaments();
@@ -1597,14 +1610,45 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                     joinedTournaments.has(b.id) &&
                     !completedTournaments.has(b.id);
 
+                  const aCompleted = completedTournaments.has(a.id);
+                  const bCompleted = completedTournaments.has(b.id);
+
                   if (aJoinedNotCompleted && !bJoinedNotCompleted) return -1;
                   if (bJoinedNotCompleted && !aJoinedNotCompleted) return 1;
+
+                  if (aJoinedNotCompleted && bJoinedNotCompleted) {
+                    if (aStatus === "active" && bStatus === "active") {
+                      return a.endTime - b.endTime;
+                    }
+                    if (aStatus === "active" && bStatus !== "active") return -1;
+                    if (bStatus === "active" && aStatus !== "active") return 1;
+                    return a.startTime - b.startTime;
+                  }
 
                   if (aStatus === "active" && bStatus !== "active") return -1;
                   if (bStatus === "active" && aStatus !== "active") return 1;
 
                   if (aStatus === "upcoming" && bStatus === "ended") return -1;
                   if (bStatus === "upcoming" && aStatus === "ended") return 1;
+
+                  if (
+                    aCompleted &&
+                    !bCompleted &&
+                    aStatus === "ended" &&
+                    bStatus === "ended"
+                  )
+                    return -1;
+                  if (
+                    bCompleted &&
+                    !aCompleted &&
+                    aStatus === "ended" &&
+                    bStatus === "ended"
+                  )
+                    return 1;
+
+                  if (aCompleted && bCompleted) {
+                    return b.endTime - a.endTime;
+                  }
 
                   if (aStatus === "active" && bStatus === "active") {
                     return a.endTime - b.endTime;
@@ -1614,51 +1658,77 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                     return a.startTime - b.startTime;
                   }
 
-                  if (aStatus === "ended" && bStatus === "ended") {
-                    return b.endTime - a.endTime;
-                  }
-
                   return 0;
                 })
                 .map((tournament) => (
                   <div
                     key={tournament.id}
                     style={{
-                      background:
-                        joinedTournaments.has(tournament.id) &&
-                        !completedTournaments.has(tournament.id)
-                          ? "rgba(16, 185, 129, 0.08)"
-                          : "rgba(255,255,255,0.05)",
-                      border:
-                        joinedTournaments.has(tournament.id) &&
-                        !completedTournaments.has(tournament.id)
-                          ? "2px solid rgba(16, 185, 129, 0.4)"
-                          : "2px solid rgba(255,255,255,0.1)",
+                      background: completedTournaments.has(tournament.id)
+                        ? "rgba(107, 114, 128, 0.1)"
+                        : joinedTournaments.has(tournament.id) &&
+                          !completedTournaments.has(tournament.id)
+                        ? "rgba(16, 185, 129, 0.08)"
+                        : "rgba(255,255,255,0.05)",
+                      border: completedTournaments.has(tournament.id)
+                        ? "2px solid rgba(107, 114, 128, 0.4)"
+                        : joinedTournaments.has(tournament.id) &&
+                          !completedTournaments.has(tournament.id)
+                        ? "2px solid rgba(16, 185, 129, 0.4)"
+                        : "2px solid rgba(255,255,255,0.1)",
                       borderRadius: "20px",
                       padding: "25px",
                       transition: "all 0.3s ease",
                       cursor: "pointer",
                       position: "relative",
+                      opacity: completedTournaments.has(tournament.id)
+                        ? 0.7
+                        : 1,
                     }}
                     onMouseEnter={(e) => {
+                      const isCompleted = completedTournaments.has(
+                        tournament.id
+                      );
                       const isJoinedNotCompleted =
                         joinedTournaments.has(tournament.id) &&
                         !completedTournaments.has(tournament.id);
-                      e.currentTarget.style.border = isJoinedNotCompleted
-                        ? "2px solid rgba(16, 185, 129, 0.6)"
-                        : "2px solid rgba(255,255,255,0.3)";
+
+                      if (isCompleted) {
+                        e.currentTarget.style.border =
+                          "2px solid rgba(107, 114, 128, 0.6)";
+                        e.currentTarget.style.boxShadow =
+                          "0 10px 30px rgba(107, 114, 128, 0.2)";
+                      } else if (isJoinedNotCompleted) {
+                        e.currentTarget.style.border =
+                          "2px solid rgba(16, 185, 129, 0.6)";
+                        e.currentTarget.style.boxShadow =
+                          "0 10px 30px rgba(16, 185, 129, 0.2)";
+                      } else {
+                        e.currentTarget.style.border =
+                          "2px solid rgba(255,255,255,0.3)";
+                        e.currentTarget.style.boxShadow =
+                          "0 10px 30px rgba(0,0,0,0.3)";
+                      }
                       e.currentTarget.style.transform = "translateY(-5px)";
-                      e.currentTarget.style.boxShadow = isJoinedNotCompleted
-                        ? "0 10px 30px rgba(16, 185, 129, 0.2)"
-                        : "0 10px 30px rgba(0,0,0,0.3)";
                     }}
                     onMouseLeave={(e) => {
+                      const isCompleted = completedTournaments.has(
+                        tournament.id
+                      );
                       const isJoinedNotCompleted =
                         joinedTournaments.has(tournament.id) &&
                         !completedTournaments.has(tournament.id);
-                      e.currentTarget.style.border = isJoinedNotCompleted
-                        ? "2px solid rgba(16, 185, 129, 0.4)"
-                        : "2px solid rgba(255,255,255,0.1)";
+
+                      if (isCompleted) {
+                        e.currentTarget.style.border =
+                          "2px solid rgba(107, 114, 128, 0.4)";
+                      } else if (isJoinedNotCompleted) {
+                        e.currentTarget.style.border =
+                          "2px solid rgba(16, 185, 129, 0.4)";
+                      } else {
+                        e.currentTarget.style.border =
+                          "2px solid rgba(255,255,255,0.1)";
+                      }
                       e.currentTarget.style.transform = "translateY(0px)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
@@ -1690,7 +1760,23 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                           >
                             {tournament.name}
                           </h3>
-                          {joinedTournaments.has(tournament.id) &&
+                          {completedTournaments.has(tournament.id) ? (
+                            <div
+                              style={{
+                                background:
+                                  "linear-gradient(45deg, #6b7280, #4b5563)",
+                                color: "white",
+                                padding: "4px 12px",
+                                borderRadius: "20px",
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                boxShadow: "0 2px 8px rgba(107, 114, 128, 0.3)",
+                              }}
+                            >
+                              ✅ COMPLETED
+                            </div>
+                          ) : (
+                            joinedTournaments.has(tournament.id) &&
                             !completedTournaments.has(tournament.id) && (
                               <div
                                 style={{
@@ -1708,7 +1794,8 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               >
                                 🏁 READY TO RACE
                               </div>
-                            )}
+                            )
+                          )}
                         </div>
                         <div
                           style={{
@@ -1993,56 +2080,52 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                         {getCurrentTournamentStatus(tournament) ===
                           "active" && (
                           <>
-                            {joinedTournaments.has(tournament.id) ? (
-                              <>
-                                {completedTournaments.has(tournament.id) ? (
-                                  <button
-                                    disabled
-                                    style={{
-                                      background: "rgba(16,185,129,0.2)",
-                                      color: "#10b981",
-                                      border: "2px solid #10b981",
-                                      padding: "12px 24px",
-                                      borderRadius: "12px",
-                                      fontSize: "16px",
-                                      fontWeight: "bold",
-                                      cursor: "not-allowed",
-                                      transition: "all 0.3s ease",
-                                    }}
-                                  >
-                                    ✅ Race Completed - Score Submitted
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => onStartRace(tournament.id)}
-                                    style={{
-                                      background:
-                                        "linear-gradient(45deg, #10b981, #059669)",
-                                      color: "white",
-                                      border: "none",
-                                      padding: "12px 24px",
-                                      borderRadius: "12px",
-                                      fontSize: "16px",
-                                      fontWeight: "bold",
-                                      cursor: "pointer",
-                                      transition: "all 0.3s ease",
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.transform =
-                                        "translateY(-2px)";
-                                      e.currentTarget.style.boxShadow =
-                                        "0 8px 25px rgba(16,185,129,0.6)";
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.transform =
-                                        "translateY(0px)";
-                                      e.currentTarget.style.boxShadow = "none";
-                                    }}
-                                  >
-                                    🏁 Race Now!
-                                  </button>
-                                )}
-                              </>
+                            {completedTournaments.has(tournament.id) ? (
+                              <button
+                                disabled
+                                style={{
+                                  background: "rgba(16,185,129,0.2)",
+                                  color: "#10b981",
+                                  border: "2px solid #10b981",
+                                  padding: "12px 24px",
+                                  borderRadius: "12px",
+                                  fontSize: "16px",
+                                  fontWeight: "bold",
+                                  cursor: "not-allowed",
+                                  transition: "all 0.3s ease",
+                                }}
+                              >
+                                ✅ Tournament Completed - Cannot Race Again
+                              </button>
+                            ) : joinedTournaments.has(tournament.id) ? (
+                              <button
+                                onClick={() => onStartRace(tournament.id)}
+                                style={{
+                                  background:
+                                    "linear-gradient(45deg, #10b981, #059669)",
+                                  color: "white",
+                                  border: "none",
+                                  padding: "12px 24px",
+                                  borderRadius: "12px",
+                                  fontSize: "16px",
+                                  fontWeight: "bold",
+                                  cursor: "pointer",
+                                  transition: "all 0.3s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform =
+                                    "translateY(-2px)";
+                                  e.currentTarget.style.boxShadow =
+                                    "0 8px 25px rgba(16,185,129,0.6)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform =
+                                    "translateY(0px)";
+                                  e.currentTarget.style.boxShadow = "none";
+                                }}
+                              >
+                                🏁 Race Now!
+                              </button>
                             ) : (
                               <button
                                 onClick={() => joinTournament(tournament)}

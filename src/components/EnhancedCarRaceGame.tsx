@@ -284,7 +284,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       },
       {
         type: "speed" as const,
-        targets: [45, 40, 35, 30, 25, 20, 15], // seconds (lower is better)
+        targets: [45, 40, 35, 30, 25, 20, 15],
         rewards: [250, 300, 350, 400, 450, 500, 600],
         difficulties: [
           "easy",
