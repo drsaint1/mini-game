@@ -342,13 +342,31 @@ contract EtherlinkRacing is ERC721URIStorage, Ownable, ReentrancyGuard, Pausable
         
        
         if (address(racingToken) != address(0)) {
-            try racingToken.mintRaceReward(player, score, tournamentId > 0) {
             
-                uint256 rewardAmount = racingToken.getRewardEstimate(score, tournamentId > 0);
-                tokenBalance[player] += rewardAmount;
-                emit TokensEarned(player, rewardAmount, score);
-            } catch {
-                
+            if (tournamentId >= 1000) {
+                try racingToken.getDailyChallengeRewardCustom(tournamentId - 1000) returns (uint256 tokenAmount) {
+                    racingToken.mint(player, tokenAmount);
+                    tokenBalance[player] += tokenAmount;
+                    emit TokensEarned(player, tokenAmount, score);
+                } catch {
+                  
+                    try racingToken.mintRaceReward(player, score, true) {
+                        uint256 rewardAmount = racingToken.getRewardEstimate(score, true);
+                        tokenBalance[player] += rewardAmount;
+                        emit TokensEarned(player, rewardAmount, score);
+                    } catch {
+                        
+                    }
+                }
+            } else {
+               
+                try racingToken.mintRaceReward(player, score, tournamentId > 0) {
+                    uint256 rewardAmount = racingToken.getRewardEstimate(score, tournamentId > 0);
+                    tokenBalance[player] += rewardAmount;
+                    emit TokensEarned(player, rewardAmount, score);
+                } catch {
+                    
+                }
             }
         }
         

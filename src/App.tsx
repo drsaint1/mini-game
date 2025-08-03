@@ -95,6 +95,11 @@ function GameWrapper() {
     setCurrentView("tournament");
   };
 
+  const handleNavigateToMenu = () => {
+    setActiveTournamentId(null);
+    setCurrentView("menu");
+  };
+
   const handleMintStarterCar = async () => {
     try {
       setMintingStatus("wallet_confirm");
@@ -721,6 +726,7 @@ function GameWrapper() {
       {currentView === "menu" && (
         <EnhancedCarRaceGame
           onNavigateToTournaments={handleNavigateToTournaments}
+          onNavigateToMenu={handleNavigateToMenu}
         />
       )}
 
@@ -729,6 +735,7 @@ function GameWrapper() {
           activeTournamentId={activeTournamentId}
           onTournamentCompleted={handleTournamentCompleted}
           onNavigateToTournaments={handleNavigateToTournaments}
+          onNavigateToMenu={handleNavigateToMenu}
         />
       )}
 

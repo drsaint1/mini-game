@@ -63,18 +63,19 @@ interface EnhancedCarRaceGameProps {
   activeTournamentId?: number | null;
   onTournamentCompleted?: (tournamentId: number) => void;
   onNavigateToTournaments?: () => void;
+  onNavigateToMenu?: () => void;
 }
 
 const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
   activeTournamentId = null,
   onTournamentCompleted,
   onNavigateToTournaments,
+  onNavigateToMenu,
 }) => {
   const { address, isConnected } = useAccount();
   const {} = useDisconnect();
   const { writeContractAsync } = useWriteContract();
 
-  // Racing contract functionality
   const {
     playerCars,
     selectedCar,
@@ -109,7 +110,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
   const [gameHistory, setGameHistory] = useState<GameHistory[]>([]);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
 
-  // Blockchain state
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
   const [autoSubmitResults, setAutoSubmitResults] = useState(false);
   const [isClaimingTokens, setIsClaimingTokens] = useState(false);
@@ -127,7 +127,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     string | null
   >(null);
 
-  // Race token state
   const [pendingTokens, setPendingTokens] = useState(0);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [,] = useState(false);
@@ -499,7 +498,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     }
   };
 
-  // Check daily challenge completion
+  // Checking for daily challenge completion
   const checkDailyChallengeStatus = () => {
     const today = new Date().toDateString();
     const savedChallengeDate = localStorage.getItem(
@@ -603,7 +602,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       query: { enabled: !!address },
     });
 
-  // Read gameplay earned token balance
   const { data: tokenBalanceData, refetch: refetchTokenBalance } =
     useReadContract({
       address: RACING_CONTRACT_ADDRESS,
@@ -723,7 +721,13 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       if (autoSubmitResults) {
         showPopup("✅ Results auto-saved on Etherlink!");
       } else {
-        showPopup("✅ Results submitted & tokens earned!");
+        if (isDailyChallengeRace && currentDailyChallenge) {
+          showPopup(
+            `🏆 Daily Challenge completed! ${currentDailyChallenge.reward} tokens earned!`
+          );
+        } else {
+          showPopup("✅ Results submitted & tokens earned!");
+        }
       }
 
       if (tournamentId && onNavigateToTournaments) {
@@ -731,6 +735,17 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
           showPopup("🏆 Returning to tournament lobby to view results...");
           setTimeout(() => {
             onNavigateToTournaments();
+          }, 2000);
+        }, 3000);
+      } else if (
+        isDailyChallengeRace &&
+        currentDailyChallenge &&
+        onNavigateToMenu
+      ) {
+        setTimeout(() => {
+          showPopup("🔒 Returning to main menu to prevent exploits...");
+          setTimeout(() => {
+            onNavigateToMenu();
           }, 2000);
         }, 3000);
       }
@@ -792,7 +807,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     }
 
     const now = Date.now();
-    const BREEDING_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const BREEDING_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
     const car1Age = now - (car1 as any).birthTime * 1000;
     const car2Age = now - (car2 as any).birthTime * 1000;
@@ -834,7 +849,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
         return;
       }
 
-      // Check if breeding is allowed
       const breedingCheck = canBreedCars(parent1, parent2);
       if (!breedingCheck.canBreed) {
         showBreedingNotification(`❌ ${breedingCheck.reason}`);
@@ -1130,31 +1144,18 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                   }
                 }
 
+                if (!challengeReward && currentDailyChallenge) {
+                  const challengeCompleted = checkChallengeCompletion(
+                    currentDailyChallenge
+                  );
+                  if (challengeCompleted) {
+                    challengeReward = currentDailyChallenge.reward;
+                  }
+                }
+
                 const finalTournamentId = challengeReward
                   ? 1000 + challengeReward
                   : tournamentId || 0;
-
-                console.log("🔍 RACE SUBMISSION DEBUG:", {
-                  isDailyChallengeRace,
-                  completedChallengeReward,
-                  challengeReward,
-                  tournamentId,
-                  finalTournamentId,
-                  willMintDailyChallengeTokens: finalTournamentId >= 1000,
-                  currentDailyChallenge: currentDailyChallenge
-                    ? {
-                        title: currentDailyChallenge.title,
-                        reward: currentDailyChallenge.reward,
-                        type: currentDailyChallenge.type,
-                        target: currentDailyChallenge.target,
-                      }
-                    : null,
-                  gameStats: {
-                    score: gameStatsRef.current.finalScore,
-                    distance: gameStatsRef.current.distance,
-                    obstacles: gameStatsRef.current.obstaclesAvoided,
-                  },
-                });
 
                 return finalTournamentId;
               })()
@@ -1322,7 +1323,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     });
   }, []);
 
-  // Updated stats sync function
   const updateDisplayStats = useCallback(() => {
     setGameStatsDisplay({
       distance: gameStatsRef.current.distance,
@@ -1562,7 +1562,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       const finalScore = gameStatsRef.current.finalScore;
       const isNewPersonalBest = saveHighScore(finalScore);
 
-      // Save game to history
       saveGameToHistory({
         score: finalScore,
         distance: gameStatsRef.current.distance,
@@ -1597,22 +1596,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
           );
           setDailyChallengeCompleted(true);
           setCompletedChallengeReward(currentDailyChallenge.reward);
-
-          console.log("🌟 DAILY CHALLENGE COMPLETED!", {
-            title: currentDailyChallenge.title,
-            reward: currentDailyChallenge.reward,
-            tournamentIdSent: 1000 + currentDailyChallenge.reward,
-            type: currentDailyChallenge.type,
-            target: currentDailyChallenge.target,
-            achievedValue:
-              currentDailyChallenge.type === "score"
-                ? gameStatsRef.current.finalScore
-                : currentDailyChallenge.type === "distance"
-                ? gameStatsRef.current.distance
-                : currentDailyChallenge.type === "survival"
-                ? gameStatsRef.current.obstaclesAvoided
-                : "unknown",
-          });
 
           showPopup(
             `🌟 DAILY CHALLENGE COMPLETED! ${currentDailyChallenge.title} earned you ${currentDailyChallenge.reward} bonus tokens!`
@@ -1843,32 +1826,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
         const distanceZ = Math.abs(obstacle.position.z - car.position.z);
         const distanceX = Math.abs(obstacle.position.x - car.position.x);
 
-        if (distanceZ < 3.0 && distanceX < 3.0) {
-          console.log("🔍 COLLISION CHECK:", {
-            carPosition: gameStateRef.current.carPosition,
-            carX: car.position.x,
-            carZ: car.position.z,
-            obstacleX: obstacle.position.x,
-            obstacleZ: obstacle.position.z,
-            distanceX: distanceX,
-            distanceZ: distanceZ,
-            wouldCollideOld: distanceZ < 1.5 && distanceX < 1.2,
-            lanes: "[-4.5, -1.5, 1.5, 4.5]",
-          });
-        }
-
         if (distanceZ < 1.5 && distanceX < 1.8) {
-          console.log("💥 COLLISION - GAME OVER!");
-          console.log("Final collision details:", {
-            obstacleZ: obstacle.position.z,
-            carZ: car.position.z,
-            obstacleX: obstacle.position.x,
-            carX: car.position.x,
-            distanceZ: distanceZ,
-            distanceX: distanceX,
-            carPosition: gameStateRef.current.carPosition,
-            isInvisible: gameStateRef.current.isInvisible,
-          });
           endGame("collision");
           return;
         }
@@ -1898,7 +1856,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       }
     }
 
-    // Golden key collisions
     for (let i = goldenKeysRef.current.length - 1; i >= 0; i--) {
       const key = goldenKeysRef.current[i];
 
@@ -2063,7 +2020,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     scene.add(carGroup);
     carRef.current = carGroup;
 
-    // Initialize stats
     gameStatsRef.current = {
       distance: 0,
       obstaclesAvoided: 0,
@@ -2073,7 +2029,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       lapTime: 0,
     };
 
-    // Apply car stats to gameplay
     applyCarStats(selectedCar);
 
     updateDisplayStats();
@@ -2183,7 +2138,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       console.log("🚀 Starting game loop from useEffect...");
       gameRunningRef.current = true;
       gameStatsRef.current.gameStartTime = Date.now();
-      // Reset game state
+
       gameStateRef.current = {
         carPosition: 0,
         targetCarPosition: 0,
@@ -2683,7 +2638,9 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                         setHasSubmittedCurrentRace(false);
                         setSubmissionStatus("idle");
                         setIsNewHighScore(false);
-                        setIsDailyChallengeRace(false);
+                        if (!currentDailyChallenge) {
+                          setIsDailyChallengeRace(false);
+                        }
                         setCompletedChallengeReward(null);
 
                         gameStateRef.current = {
@@ -2798,7 +2755,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                           return;
                         }
 
-                        // Reset game state completely
                         setGameOver(false);
                         setScore(0);
                         setHasSubmittedCurrentRace(false);
@@ -4757,7 +4713,6 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                           ) {
                             setSelectedParent2(car.id);
                           } else {
-                            // Reset selection
                             setSelectedParent1(car.id);
                             setSelectedParent2(null);
                           }

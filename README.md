@@ -78,7 +78,7 @@ npx hardhat compile
 npx hardhat run scripts/deploy-contracts.js --network etherlinkTestnet
 ```
 
-**Note:** The game is already configured with pre-deployed contracts, so this step is optional.
+**Note:** The game is already configured with pre-deployed contracts, so this step is optional. The script automatically updates the .env file with new contracts.
 
 ### Step 6: Start the Development Server
 
