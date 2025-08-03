@@ -150,7 +150,6 @@ interface Tournament {
   participantCount: number;
   maxParticipants: number;
   finalized: boolean;
-  status: "upcoming" | "active" | "ended";
 }
 
 interface TournamentLobbyProps {
@@ -673,7 +672,6 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
 
-    
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, 4000);
@@ -683,9 +681,11 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
- 
   const loadTournamentResults = async (tournament: Tournament) => {
-    if (getCurrentTournamentStatus(tournament) !== "ended" || !tournament.finalized) {
+    if (
+      getCurrentTournamentStatus(tournament) !== "ended" ||
+      !tournament.finalized
+    ) {
       showToast(
         "Tournament results are only available for completed tournaments",
         "warning"
@@ -707,7 +707,6 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     if (!address) return false;
 
     try {
-
       const playerTournamentData = await readContract(config, {
         address: TOURNAMENTS_CONTRACT_ADDRESS,
         abi: TOURNAMENTS_ABI,
@@ -844,214 +843,140 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     });
 
   const loadTournaments = useCallback(async () => {
-      if (!isConnected || !nextTournamentId) {
-        setTournaments([]);
-        return;
+    if (!isConnected || !nextTournamentId) {
+      setTournaments([]);
+      return;
+    }
+
+    console.log("🚀 Starting tournament loading process...");
+    setLoading(true);
+
+    try {
+      const loadedTournaments: Tournament[] = [];
+      const now = Date.now();
+      const joinedTournamentIds = new Set<number>();
+      const completedTournamentIds = new Set<number>();
+
+      console.log(
+        "🏆 Loading tournaments, count:",
+        Number(nextTournamentId || 0)
+      );
+
+      const tournamentCount = Number(nextTournamentId || 0);
+
+      if (tournamentCount > 1) {
+        console.log(
+          `🔄 Found ${tournamentCount - 1} tournaments, loading in parallel...`
+        );
+
+        const tournamentIds = Array.from(
+          { length: tournamentCount - 1 },
+          (_, i) => i + 1
+        );
+
+        const tournamentPromises = tournamentIds.map(async (tournamentId) => {
+          try {
+            console.log(`📋 Loading tournament ${tournamentId}...`);
+
+            const [tournamentDetails, userHasJoined, userHasCompleted] =
+              await Promise.all([
+                readContract(config, {
+                  address: TOURNAMENTS_CONTRACT_ADDRESS,
+                  abi: TOURNAMENTS_ABI,
+                  functionName: "getTournamentDetails",
+                  args: [BigInt(tournamentId)],
+                }),
+                checkIfUserJoined(tournamentId),
+                checkIfUserCompletedTournament(tournamentId),
+              ]);
+
+            console.log(`Tournament ${tournamentId} loaded:`, {
+              tournamentDetails,
+              userHasJoined,
+              userHasCompleted,
+            });
+
+            const [
+              name,
+              entryFee,
+              prizePool,
+              startTime,
+              endTime,
+              participantCount,
+              finalized,
+            ] = tournamentDetails;
+
+            const startTimeMs = Number(startTime) * 1000;
+            const endTimeMs = Number(endTime) * 1000;
+
+            if (userHasJoined) {
+              joinedTournamentIds.add(tournamentId);
+            }
+            if (userHasCompleted) {
+              completedTournamentIds.add(tournamentId);
+            }
+
+            return {
+              id: tournamentId,
+              name: name || `🏆 Tournament #${tournamentId}`,
+              entryFee: entryFee,
+              prizePool: prizePool,
+              startTime: startTimeMs,
+              endTime: endTimeMs,
+              participantCount: Number(participantCount),
+              maxParticipants: 50,
+              finalized: finalized,
+            };
+          } catch (error) {
+            console.error(`Failed to load tournament ${tournamentId}:`, error);
+
+            return {
+              id: tournamentId,
+              name: `🏆 Tournament #${tournamentId} (Loading...)`,
+              entryFee: parseEther("0.01"),
+              prizePool: parseEther("0.1"),
+              startTime: now + 300000,
+              endTime: now + 86400000,
+              participantCount: 0,
+              maxParticipants: 50,
+              finalized: false,
+            };
+          }
+        });
+
+        const loadedTournamentResults = await Promise.all(tournamentPromises);
+        loadedTournaments.push(...loadedTournamentResults);
+      } else {
+        console.log("📝 No tournaments created yet - showing demo");
+
+        loadedTournaments.push({
+          id: 0,
+          name: "🎮 Demo Tournament (Create your own!)",
+          entryFee: parseEther("0.001"),
+          prizePool: parseEther("0.01"),
+          startTime: now + 300000,
+          endTime: now + 86400000,
+          participantCount: 0,
+          maxParticipants: 10,
+          finalized: false,
+        });
       }
 
       console.log("🚀 Starting tournament loading process...");
       setLoading(true);
 
-      try {
-        const loadedTournaments: Tournament[] = [];
-        const now = Date.now();
-        const joinedTournamentIds = new Set<number>();
-        const completedTournamentIds = new Set<number>();
-
-      
-        console.log(
-          "🏆 Loading tournaments, count:",
-          Number(nextTournamentId || 0)
-        );
-
-        const tournamentCount = Number(nextTournamentId || 0);
-
-        if (tournamentCount > 1) {
-          console.log(
-            `🔄 Found ${
-              tournamentCount - 1
-            } tournaments, loading in parallel...`
-          );
-
-          const tournamentIds = Array.from(
-            { length: tournamentCount - 1 },
-            (_, i) => i + 1
-          );
-
-          const tournamentPromises = tournamentIds.map(async (tournamentId) => {
-            try {
-              console.log(`📋 Loading tournament ${tournamentId}...`);
-
-              const [tournamentDetails, userHasJoined, userHasCompleted] =
-                await Promise.all([
-                  readContract(config, {
-                    address: TOURNAMENTS_CONTRACT_ADDRESS,
-                    abi: TOURNAMENTS_ABI,
-                    functionName: "getTournamentDetails",
-                    args: [BigInt(tournamentId)],
-                  }),
-                  checkIfUserJoined(tournamentId),
-                  checkIfUserCompletedTournament(tournamentId),
-                ]);
-
-              console.log(`Tournament ${tournamentId} loaded:`, {
-                tournamentDetails,
-                userHasJoined,
-                userHasCompleted,
-              });
-
-              const [
-                name,
-                entryFee,
-                prizePool,
-                startTime,
-                endTime,
-                participantCount,
-                finalized,
-              ] = tournamentDetails;
-
-              const startTimeMs = Number(startTime) * 1000;
-              const endTimeMs = Number(endTime) * 1000;
-
-              const status: "upcoming" | "active" | "ended" =
-                now < startTimeMs
-                  ? "upcoming"
-                  : now <= endTimeMs && !finalized
-                  ? "active"
-                  : "ended";
-
-              if (userHasJoined) {
-                joinedTournamentIds.add(tournamentId);
-              }
-              if (userHasCompleted) {
-                completedTournamentIds.add(tournamentId);
-              }
-
-              return {
-                id: tournamentId,
-                name: name || `🏆 Tournament #${tournamentId}`,
-                entryFee: entryFee,
-                prizePool: prizePool,
-                startTime: startTimeMs,
-                endTime: endTimeMs,
-                participantCount: Number(participantCount),
-                maxParticipants: 50, 
-                finalized: finalized,
-                status: status,
-              };
-            } catch (error) {
-              console.error(
-                `Failed to load tournament ${tournamentId}:`,
-                error
-              );
-
-              return {
-                id: tournamentId,
-                name: `🏆 Tournament #${tournamentId} (Loading...)`,
-                entryFee: parseEther("0.01"),
-                prizePool: parseEther("0.1"),
-                startTime: now + 300000,
-                endTime: now + 86400000,
-                participantCount: 0,
-                maxParticipants: 50,
-                finalized: false,
-                status: "upcoming" as const,
-              };
-            }
-          });
-
-          const loadedTournamentResults = await Promise.all(tournamentPromises);
-          loadedTournaments.push(...loadedTournamentResults);
-        } else {
-          console.log("📝 No tournaments created yet - showing demo");
-
-          loadedTournaments.push({
-            id: 0,
-            name: "🎮 Demo Tournament (Create your own!)",
-            entryFee: parseEther("0.001"),
-            prizePool: parseEther("0.01"),
-            startTime: now + 300000,
-            endTime: now + 86400000,
-            participantCount: 0,
-            maxParticipants: 10,
-            finalized: false,
-            status: "upcoming" as const,
-          });
-        }
-
-        setJoinedTournaments(joinedTournamentIds);
-        setCompletedTournaments(completedTournamentIds);
-
-        const sortedTournaments = loadedTournaments.sort((a, b) => {
-          const now = Date.now();
-
-          const aJoinedNotCompleted =
-            joinedTournamentIds.has(a.id) && !completedTournamentIds.has(a.id);
-          const bJoinedNotCompleted =
-            joinedTournamentIds.has(b.id) && !completedTournamentIds.has(b.id);
-
-          if (aJoinedNotCompleted && !bJoinedNotCompleted) return -1;
-          if (bJoinedNotCompleted && !aJoinedNotCompleted) return 1;
-
-          if (a.status === "active" && b.status !== "active") return -1;
-          if (b.status === "active" && a.status !== "active") return 1;
-
-          if (a.status === "upcoming" && b.status === "ended") return -1;
-          if (b.status === "upcoming" && a.status === "ended") return 1;
-
-          if (a.status === "active" && b.status === "active") {
-            return a.endTime - b.endTime;
-          }
-
-          if (a.status === "upcoming" && b.status === "upcoming") {
-            return a.startTime - b.startTime;
-          }
-
-          if (a.status === "ended" && b.status === "ended") {
-            return b.endTime - a.endTime;
-          }
-
-          return 0;
-        });
-
-        console.log(
-          "🏁 Final tournament list (prioritized):",
-          sortedTournaments.map((t) => ({
-            id: t.id,
-            name: t.name,
-            status: t.status,
-            joined: joinedTournamentIds.has(t.id),
-            completed: completedTournamentIds.has(t.id),
-            priority:
-              joinedTournamentIds.has(t.id) && !completedTournamentIds.has(t.id)
-                ? "HIGH (Joined, Not Raced)"
-                : t.status === "ended"
-                ? "LOW (Ended)"
-                : "MEDIUM (By Time)",
-            timeRemaining:
-              t.status === "active"
-                ? `${Math.floor((t.endTime - now) / 60000)}min`
-                : t.status === "upcoming"
-                ? `${Math.floor((t.startTime - now) / 60000)}min`
-                : "ended",
-          }))
-        );
-
-        console.log(
-          `✅ Successfully loaded ${loadedTournaments.length} tournaments`
-        );
-        setTournaments(loadedTournaments);
-      } catch (error) {
-        console.error("❌ Failed to load tournaments:", error);
-        showToast(
-          "Failed to load tournaments. Please try refreshing.",
-          "error"
-        );
-        setTournaments([]);
-      } finally {
-        console.log("🏁 Tournament loading complete");
-        setLoading(false);
-      }
+      console.log(
+        `✅ Successfully loaded ${loadedTournaments.length} tournaments`
+      );
+      setTournaments(loadedTournaments);
+    } catch (error) {
+      console.error("❌ Failed to load tournaments:", error);
+      showToast("Failed to load tournaments. Please try refreshing.", "error");
+      setTournaments([]);
+    } finally {
+      console.log("🏁 Tournament loading complete");
+      setLoading(false);
+    }
   }, [isConnected, nextTournamentId, address, selectedCarId]);
 
   useEffect(() => {
@@ -1061,7 +986,9 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     return () => clearInterval(interval);
   }, [loadTournaments]);
 
-  const getCurrentTournamentStatus = (tournament: Tournament): "upcoming" | "active" | "ended" => {
+  const getCurrentTournamentStatus = (
+    tournament: Tournament
+  ): "upcoming" | "active" | "ended" => {
     const now = Date.now();
     return now < tournament.startTime
       ? "upcoming"
@@ -1074,16 +1001,17 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
 
   useEffect(() => {
     const hasUpcomingTournaments = tournaments.some(
-      tournament => getCurrentTournamentStatus(tournament) === "upcoming" && 
-      Date.now() < tournament.startTime && 
-      tournament.startTime - Date.now() < 600000
+      (tournament) =>
+        getCurrentTournamentStatus(tournament) === "upcoming" &&
+        Date.now() < tournament.startTime &&
+        tournament.startTime - Date.now() < 600000
     );
 
     if (hasUpcomingTournaments) {
       const quickInterval = setInterval(() => {
         forceUpdate({});
       }, 1000);
-      
+
       return () => clearInterval(quickInterval);
     }
   }, [tournaments]);
@@ -1182,7 +1110,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     return `${minutes}m`;
   };
 
-  const getStatusColor = (status: Tournament["status"]) => {
+  const getStatusColor = (status: "upcoming" | "active" | "ended") => {
     switch (status) {
       case "upcoming":
         return "bg-gradient-to-r from-yellow-500 to-orange-500";
@@ -1195,7 +1123,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
     }
   };
 
-  const getStatusIcon = (status: Tournament["status"]) => {
+  const getStatusIcon = (status: "upcoming" | "active" | "ended") => {
     switch (status) {
       case "upcoming":
         return "⏰";
@@ -1664,9 +1592,11 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                   const bStatus = getCurrentTournamentStatus(b);
 
                   const aJoinedNotCompleted =
-                    joinedTournaments.has(a.id) && !completedTournaments.has(a.id);
+                    joinedTournaments.has(a.id) &&
+                    !completedTournaments.has(a.id);
                   const bJoinedNotCompleted =
-                    joinedTournaments.has(b.id) && !completedTournaments.has(b.id);
+                    joinedTournaments.has(b.id) &&
+                    !completedTournaments.has(b.id);
 
                   if (aJoinedNotCompleted && !bJoinedNotCompleted) return -1;
                   if (bJoinedNotCompleted && !aJoinedNotCompleted) return 1;
@@ -1692,529 +1622,542 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                   return 0;
                 })
                 .map((tournament) => (
-                <div
-                  key={tournament.id}
-                  style={{
-                    background:
-                      joinedTournaments.has(tournament.id) &&
-                      !completedTournaments.has(tournament.id)
-                        ? "rgba(16, 185, 129, 0.08)"
-                        : "rgba(255,255,255,0.05)",
-                    border:
-                      joinedTournaments.has(tournament.id) &&
-                      !completedTournaments.has(tournament.id)
-                        ? "2px solid rgba(16, 185, 129, 0.4)"
-                        : "2px solid rgba(255,255,255,0.1)",
-                    borderRadius: "20px",
-                    padding: "25px",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                    position: "relative",
-                  }}
-                  onMouseEnter={(e) => {
-                    const isJoinedNotCompleted =
-                      joinedTournaments.has(tournament.id) &&
-                      !completedTournaments.has(tournament.id);
-                    e.currentTarget.style.border = isJoinedNotCompleted
-                      ? "2px solid rgba(16, 185, 129, 0.6)"
-                      : "2px solid rgba(255,255,255,0.3)";
-                    e.currentTarget.style.transform = "translateY(-5px)";
-                    e.currentTarget.style.boxShadow = isJoinedNotCompleted
-                      ? "0 10px 30px rgba(16, 185, 129, 0.2)"
-                      : "0 10px 30px rgba(0,0,0,0.3)";
-                  }}
-                  onMouseLeave={(e) => {
-                    const isJoinedNotCompleted =
-                      joinedTournaments.has(tournament.id) &&
-                      !completedTournaments.has(tournament.id);
-                    e.currentTarget.style.border = isJoinedNotCompleted
-                      ? "2px solid rgba(16, 185, 129, 0.4)"
-                      : "2px solid rgba(255,255,255,0.1)";
-                    e.currentTarget.style.transform = "translateY(0px)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
                   <div
+                    key={tournament.id}
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginBottom: "20px",
+                      background:
+                        joinedTournaments.has(tournament.id) &&
+                        !completedTournaments.has(tournament.id)
+                          ? "rgba(16, 185, 129, 0.08)"
+                          : "rgba(255,255,255,0.05)",
+                      border:
+                        joinedTournaments.has(tournament.id) &&
+                        !completedTournaments.has(tournament.id)
+                          ? "2px solid rgba(16, 185, 129, 0.4)"
+                          : "2px solid rgba(255,255,255,0.1)",
+                      borderRadius: "20px",
+                      padding: "25px",
+                      transition: "all 0.3s ease",
+                      cursor: "pointer",
+                      position: "relative",
+                    }}
+                    onMouseEnter={(e) => {
+                      const isJoinedNotCompleted =
+                        joinedTournaments.has(tournament.id) &&
+                        !completedTournaments.has(tournament.id);
+                      e.currentTarget.style.border = isJoinedNotCompleted
+                        ? "2px solid rgba(16, 185, 129, 0.6)"
+                        : "2px solid rgba(255,255,255,0.3)";
+                      e.currentTarget.style.transform = "translateY(-5px)";
+                      e.currentTarget.style.boxShadow = isJoinedNotCompleted
+                        ? "0 10px 30px rgba(16, 185, 129, 0.2)"
+                        : "0 10px 30px rgba(0,0,0,0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const isJoinedNotCompleted =
+                        joinedTournaments.has(tournament.id) &&
+                        !completedTournaments.has(tournament.id);
+                      e.currentTarget.style.border = isJoinedNotCompleted
+                        ? "2px solid rgba(16, 185, 129, 0.4)"
+                        : "2px solid rgba(255,255,255,0.1)";
+                      e.currentTarget.style.transform = "translateY(0px)";
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        <h3
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div>
+                        <div
                           style={{
-                            fontSize: "24px",
-                            fontWeight: "bold",
-                            color: "white",
-                            margin: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                            marginBottom: "10px",
                           }}
                         >
-                          {tournament.name}
-                        </h3>
-                        {joinedTournaments.has(tournament.id) &&
-                          !completedTournaments.has(tournament.id) && (
-                            <div
-                              style={{
-                                background:
-                                  "linear-gradient(45deg, #10b981, #059669)",
-                                color: "white",
-                                padding: "4px 12px",
-                                borderRadius: "20px",
-                                fontSize: "12px",
-                                fontWeight: "bold",
-                                boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
-                                animation: "pulse 2s infinite",
-                              }}
-                            >
-                              🏁 READY TO RACE
-                            </div>
+                          <h3
+                            style={{
+                              fontSize: "24px",
+                              fontWeight: "bold",
+                              color: "white",
+                              margin: 0,
+                            }}
+                          >
+                            {tournament.name}
+                          </h3>
+                          {joinedTournaments.has(tournament.id) &&
+                            !completedTournaments.has(tournament.id) && (
+                              <div
+                                style={{
+                                  background:
+                                    "linear-gradient(45deg, #10b981, #059669)",
+                                  color: "white",
+                                  padding: "4px 12px",
+                                  borderRadius: "20px",
+                                  fontSize: "12px",
+                                  fontWeight: "bold",
+                                  boxShadow:
+                                    "0 2px 8px rgba(16, 185, 129, 0.3)",
+                                  animation: "pulse 2s infinite",
+                                }}
+                              >
+                                🏁 READY TO RACE
+                              </div>
+                            )}
+                        </div>
+                        <div
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "6px 16px",
+                            borderRadius: "25px",
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            color: "white",
+                          }}
+                          className={getStatusColor(
+                            getCurrentTournamentStatus(tournament)
                           )}
+                        >
+                          <span>
+                            {getStatusIcon(
+                              getCurrentTournamentStatus(tournament)
+                            )}
+                          </span>
+                          {getCurrentTournamentStatus(tournament)
+                            .charAt(0)
+                            .toUpperCase() +
+                            getCurrentTournamentStatus(tournament).slice(1)}
+                        </div>
                       </div>
                       <div
                         style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          padding: "6px 16px",
-                          borderRadius: "25px",
+                          textAlign: "right",
+                          color: "rgba(255,255,255,0.7)",
+                        }}
+                      >
+                        <div style={{ fontSize: "12px" }}>
+                          Tournament #{tournament.id}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(150px, 1fr))",
+                        gap: "20px",
+                        marginBottom: "25px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: "rgba(59,130,246,0.1)",
+                          padding: "15px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(59,130,246,0.3)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: "rgba(255,255,255,0.7)",
+                            fontSize: "12px",
+                            marginBottom: "5px",
+                          }}
+                        >
+                          Entry Fee
+                        </div>
+                        <div
+                          style={{
+                            color: "#3b82f6",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {formatEther(tournament.entryFee)} XTZ
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          background: "rgba(16,185,129,0.1)",
+                          padding: "15px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(16,185,129,0.3)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: "rgba(255,255,255,0.7)",
+                            fontSize: "12px",
+                            marginBottom: "5px",
+                          }}
+                        >
+                          Prize Pool
+                        </div>
+                        <div
+                          style={{
+                            color: "#10b981",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {formatEther(tournament.prizePool)} XTZ
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          background: "rgba(139,92,246,0.1)",
+                          padding: "15px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(139,92,246,0.3)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: "rgba(255,255,255,0.7)",
+                            fontSize: "12px",
+                            marginBottom: "5px",
+                          }}
+                        >
+                          Participants
+                        </div>
+                        <div
+                          style={{
+                            color: "#8b5cf6",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {tournament.participantCount}/
+                          {tournament.maxParticipants}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          background: "rgba(251,191,36,0.1)",
+                          padding: "15px",
+                          borderRadius: "12px",
+                          border: "1px solid rgba(251,191,36,0.3)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: "rgba(255,255,255,0.7)",
+                            fontSize: "12px",
+                            marginBottom: "5px",
+                          }}
+                        >
+                          {getCurrentTournamentStatus(tournament) === "upcoming"
+                            ? "Starts In"
+                            : getCurrentTournamentStatus(tournament) ===
+                              "active"
+                            ? "Ends In"
+                            : "Ended"}
+                        </div>
+                        <div
+                          style={{
+                            color: "#fbbf24",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {getCurrentTournamentStatus(tournament) === "upcoming"
+                            ? formatTimeRemaining(tournament.startTime)
+                            : getCurrentTournamentStatus(tournament) ===
+                              "active"
+                            ? formatTimeRemaining(tournament.endTime)
+                            : "Finished"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: "rgba(255,255,255,0.6)",
                           fontSize: "14px",
-                          fontWeight: "bold",
-                          color: "white",
-                        }}
-                        className={getStatusColor(getCurrentTournamentStatus(tournament))}
-                      >
-                        <span>{getStatusIcon(getCurrentTournamentStatus(tournament))}</span>
-                        {getCurrentTournamentStatus(tournament).charAt(0).toUpperCase() +
-                          getCurrentTournamentStatus(tournament).slice(1)}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        textAlign: "right",
-                        color: "rgba(255,255,255,0.7)",
-                      }}
-                    >
-                      <div style={{ fontSize: "12px" }}>
-                        Tournament #{tournament.id}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(150px, 1fr))",
-                      gap: "20px",
-                      marginBottom: "25px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: "rgba(59,130,246,0.1)",
-                        padding: "15px",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(59,130,246,0.3)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          color: "rgba(255,255,255,0.7)",
-                          fontSize: "12px",
-                          marginBottom: "5px",
+                          background: "rgba(255,255,255,0.05)",
+                          padding: "8px 15px",
+                          borderRadius: "20px",
                         }}
                       >
-                        Entry Fee
+                        🏆 Prize Distribution: 🥇 50% • 🥈 30% • 🥉 20%
                       </div>
-                      <div
-                        style={{
-                          color: "#3b82f6",
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {formatEther(tournament.entryFee)} XTZ
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        background: "rgba(16,185,129,0.1)",
-                        padding: "15px",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(16,185,129,0.3)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          color: "rgba(255,255,255,0.7)",
-                          fontSize: "12px",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        Prize Pool
-                      </div>
-                      <div
-                        style={{
-                          color: "#10b981",
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {formatEther(tournament.prizePool)} XTZ
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        background: "rgba(139,92,246,0.1)",
-                        padding: "15px",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(139,92,246,0.3)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          color: "rgba(255,255,255,0.7)",
-                          fontSize: "12px",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        Participants
-                      </div>
-                      <div
-                        style={{
-                          color: "#8b5cf6",
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {tournament.participantCount}/
-                        {tournament.maxParticipants}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        background: "rgba(251,191,36,0.1)",
-                        padding: "15px",
-                        borderRadius: "12px",
-                        border: "1px solid rgba(251,191,36,0.3)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          color: "rgba(255,255,255,0.7)",
-                          fontSize: "12px",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        {getCurrentTournamentStatus(tournament) === "upcoming"
-                          ? "Starts In"
-                          : getCurrentTournamentStatus(tournament) === "active"
-                          ? "Ends In"
-                          : "Ended"}
-                      </div>
-                      <div
-                        style={{
-                          color: "#fbbf24",
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {getCurrentTournamentStatus(tournament) === "upcoming"
-                          ? formatTimeRemaining(tournament.startTime)
-                          : getCurrentTournamentStatus(tournament) === "active"
-                          ? formatTimeRemaining(tournament.endTime)
-                          : "Finished"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        color: "rgba(255,255,255,0.6)",
-                        fontSize: "14px",
-                        background: "rgba(255,255,255,0.05)",
-                        padding: "8px 15px",
-                        borderRadius: "20px",
-                      }}
-                    >
-                      🏆 Prize Distribution: 🥇 50% • 🥈 30% • 🥉 20%
-                    </div>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                      {getCurrentTournamentStatus(tournament) === "upcoming" && (
-                        <>
-                          {!joinedTournaments.has(tournament.id) ? (
-                            <button
-                              onClick={() => joinTournament(tournament)}
-                              disabled={
-                                loading ||
-                                tournament.participantCount >=
-                                  tournament.maxParticipants ||
-                                Date.now() < tournament.startTime
-                              }
-                              style={{
-                                background:
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        {getCurrentTournamentStatus(tournament) ===
+                          "upcoming" && (
+                          <>
+                            {!joinedTournaments.has(tournament.id) ? (
+                              <button
+                                onClick={() => joinTournament(tournament)}
+                                disabled={
+                                  loading ||
                                   tournament.participantCount >=
                                     tournament.maxParticipants ||
                                   Date.now() < tournament.startTime
-                                    ? "rgba(107,114,128,0.5)"
-                                    : "linear-gradient(45deg, #3b82f6, #06b6d4)",
-                                color: "white",
-                                border: "none",
-                                padding: "12px 24px",
-                                borderRadius: "12px",
-                                fontSize: "16px",
-                                fontWeight: "bold",
-                                cursor:
-                                  tournament.participantCount >=
-                                    tournament.maxParticipants ||
-                                  Date.now() < tournament.startTime
-                                    ? "not-allowed"
-                                    : "pointer",
-                                transition: "all 0.3s ease",
-                                opacity:
-                                  tournament.participantCount >=
-                                    tournament.maxParticipants ||
-                                  Date.now() < tournament.startTime
-                                    ? 0.5
-                                    : 1,
-                              }}
-                              onMouseEnter={(e) => {
-                                if (
-                                  tournament.participantCount <
-                                    tournament.maxParticipants &&
-                                  Date.now() >= tournament.startTime
-                                ) {
-                                  e.currentTarget.style.transform =
-                                    "translateY(-2px)";
-                                  e.currentTarget.style.boxShadow =
-                                    "0 8px 25px rgba(59,130,246,0.6)";
                                 }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (
-                                  tournament.participantCount <
-                                    tournament.maxParticipants &&
-                                  Date.now() >= tournament.startTime
-                                ) {
-                                  e.currentTarget.style.transform =
-                                    "translateY(0px)";
-                                  e.currentTarget.style.boxShadow = "none";
-                                }
-                              }}
-                            >
-                              {tournament.participantCount >=
-                              tournament.maxParticipants
-                                ? "🔒 Full"
-                                : Date.now() < tournament.startTime
-                                ? "⏰ Starting Soon..."
-                                : "💰 Join Now (Pay Entry Fee)"}
-                            </button>
-                          ) : (
-                            <button
-                              disabled
-                              style={{
-                                background: "rgba(16,185,129,0.2)",
-                                color: "#10b981",
-                                border: "2px solid #10b981",
-                                padding: "12px 24px",
-                                borderRadius: "12px",
-                                fontSize: "16px",
-                                fontWeight: "bold",
-                                cursor: "not-allowed",
-                                transition: "all 0.3s ease",
-                              }}
-                            >
-                              ✅ Joined - Wait for Tournament Start
-                            </button>
-                          )}
-                        </>
-                      )}
-                      {getCurrentTournamentStatus(tournament) === "active" && (
-                        <>
-                          {joinedTournaments.has(tournament.id) ? (
-                            <>
-                              {completedTournaments.has(tournament.id) ? (
-                                <button
-                                  disabled
-                                  style={{
-                                    background: "rgba(16,185,129,0.2)",
-                                    color: "#10b981",
-                                    border: "2px solid #10b981",
-                                    padding: "12px 24px",
-                                    borderRadius: "12px",
-                                    fontSize: "16px",
-                                    fontWeight: "bold",
-                                    cursor: "not-allowed",
-                                    transition: "all 0.3s ease",
-                                  }}
-                                >
-                                  ✅ Race Completed - Score Submitted
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => onStartRace(tournament.id)}
-                                  style={{
-                                    background:
-                                      "linear-gradient(45deg, #10b981, #059669)",
-                                    color: "white",
-                                    border: "none",
-                                    padding: "12px 24px",
-                                    borderRadius: "12px",
-                                    fontSize: "16px",
-                                    fontWeight: "bold",
-                                    cursor: "pointer",
-                                    transition: "all 0.3s ease",
-                                  }}
-                                  onMouseEnter={(e) => {
+                                style={{
+                                  background:
+                                    tournament.participantCount >=
+                                      tournament.maxParticipants ||
+                                    Date.now() < tournament.startTime
+                                      ? "rgba(107,114,128,0.5)"
+                                      : "linear-gradient(45deg, #3b82f6, #06b6d4)",
+                                  color: "white",
+                                  border: "none",
+                                  padding: "12px 24px",
+                                  borderRadius: "12px",
+                                  fontSize: "16px",
+                                  fontWeight: "bold",
+                                  cursor:
+                                    tournament.participantCount >=
+                                      tournament.maxParticipants ||
+                                    Date.now() < tournament.startTime
+                                      ? "not-allowed"
+                                      : "pointer",
+                                  transition: "all 0.3s ease",
+                                  opacity:
+                                    tournament.participantCount >=
+                                      tournament.maxParticipants ||
+                                    Date.now() < tournament.startTime
+                                      ? 0.5
+                                      : 1,
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (
+                                    tournament.participantCount <
+                                      tournament.maxParticipants &&
+                                    Date.now() >= tournament.startTime
+                                  ) {
                                     e.currentTarget.style.transform =
                                       "translateY(-2px)";
                                     e.currentTarget.style.boxShadow =
-                                      "0 8px 25px rgba(16,185,129,0.6)";
-                                  }}
-                                  onMouseLeave={(e) => {
+                                      "0 8px 25px rgba(59,130,246,0.6)";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (
+                                    tournament.participantCount <
+                                      tournament.maxParticipants &&
+                                    Date.now() >= tournament.startTime
+                                  ) {
                                     e.currentTarget.style.transform =
                                       "translateY(0px)";
                                     e.currentTarget.style.boxShadow = "none";
-                                  }}
-                                >
-                                  🏁 Race Now!
-                                </button>
-                              )}
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => joinTournament(tournament)}
-                              disabled={
-                                loading ||
-                                tournament.participantCount >=
-                                  tournament.maxParticipants ||
-                                Date.now() < tournament.startTime
+                                  }
+                                }}
+                              >
+                                {tournament.participantCount >=
+                                tournament.maxParticipants
+                                  ? "🔒 Full"
+                                  : Date.now() < tournament.startTime
+                                  ? "⏰ Starting Soon..."
+                                  : "💰 Join Now (Pay Entry Fee)"}
+                              </button>
+                            ) : (
+                              <button
+                                disabled
+                                style={{
+                                  background: "rgba(16,185,129,0.2)",
+                                  color: "#10b981",
+                                  border: "2px solid #10b981",
+                                  padding: "12px 24px",
+                                  borderRadius: "12px",
+                                  fontSize: "16px",
+                                  fontWeight: "bold",
+                                  cursor: "not-allowed",
+                                  transition: "all 0.3s ease",
+                                }}
+                              >
+                                ✅ Joined - Wait for Tournament Start
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {getCurrentTournamentStatus(tournament) ===
+                          "active" && (
+                          <>
+                            {joinedTournaments.has(tournament.id) ? (
+                              <>
+                                {completedTournaments.has(tournament.id) ? (
+                                  <button
+                                    disabled
+                                    style={{
+                                      background: "rgba(16,185,129,0.2)",
+                                      color: "#10b981",
+                                      border: "2px solid #10b981",
+                                      padding: "12px 24px",
+                                      borderRadius: "12px",
+                                      fontSize: "16px",
+                                      fontWeight: "bold",
+                                      cursor: "not-allowed",
+                                      transition: "all 0.3s ease",
+                                    }}
+                                  >
+                                    ✅ Race Completed - Score Submitted
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => onStartRace(tournament.id)}
+                                    style={{
+                                      background:
+                                        "linear-gradient(45deg, #10b981, #059669)",
+                                      color: "white",
+                                      border: "none",
+                                      padding: "12px 24px",
+                                      borderRadius: "12px",
+                                      fontSize: "16px",
+                                      fontWeight: "bold",
+                                      cursor: "pointer",
+                                      transition: "all 0.3s ease",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.transform =
+                                        "translateY(-2px)";
+                                      e.currentTarget.style.boxShadow =
+                                        "0 8px 25px rgba(16,185,129,0.6)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.transform =
+                                        "translateY(0px)";
+                                      e.currentTarget.style.boxShadow = "none";
+                                    }}
+                                  >
+                                    🏁 Race Now!
+                                  </button>
+                                )}
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => joinTournament(tournament)}
+                                disabled={
+                                  loading ||
+                                  tournament.participantCount >=
+                                    tournament.maxParticipants ||
+                                  Date.now() < tournament.startTime
+                                }
+                                style={{
+                                  background:
+                                    tournament.participantCount >=
+                                      tournament.maxParticipants ||
+                                    Date.now() < tournament.startTime
+                                      ? "rgba(107,114,128,0.5)"
+                                      : "linear-gradient(45deg, #3b82f6, #06b6d4)",
+                                  color: "white",
+                                  border: "none",
+                                  padding: "12px 24px",
+                                  borderRadius: "12px",
+                                  fontSize: "16px",
+                                  fontWeight: "bold",
+                                  cursor:
+                                    tournament.participantCount >=
+                                      tournament.maxParticipants ||
+                                    Date.now() < tournament.startTime
+                                      ? "not-allowed"
+                                      : "pointer",
+                                  transition: "all 0.3s ease",
+                                  opacity:
+                                    tournament.participantCount >=
+                                      tournament.maxParticipants ||
+                                    Date.now() < tournament.startTime
+                                      ? 0.5
+                                      : 1,
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (
+                                    tournament.participantCount <
+                                      tournament.maxParticipants &&
+                                    Date.now() >= tournament.startTime
+                                  ) {
+                                    e.currentTarget.style.transform =
+                                      "translateY(-2px)";
+                                    e.currentTarget.style.boxShadow =
+                                      "0 8px 25px rgba(59,130,246,0.6)";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (
+                                    tournament.participantCount <
+                                      tournament.maxParticipants &&
+                                    Date.now() >= tournament.startTime
+                                  ) {
+                                    e.currentTarget.style.transform =
+                                      "translateY(0px)";
+                                    e.currentTarget.style.boxShadow = "none";
+                                  }
+                                }}
+                              >
+                                {tournament.participantCount >=
+                                tournament.maxParticipants
+                                  ? "🔒 Full"
+                                  : Date.now() < tournament.startTime
+                                  ? "⏰ Starting Soon..."
+                                  : "💰 Join & Race (Pay Entry Fee)"}
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {getCurrentTournamentStatus(tournament) === "ended" && (
+                          <button
+                            onClick={() => loadTournamentResults(tournament)}
+                            style={{
+                              background: tournament.finalized
+                                ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
+                                : "rgba(107,114,128,0.5)",
+                              color: "white",
+                              border: "none",
+                              padding: "12px 24px",
+                              borderRadius: "12px",
+                              fontSize: "16px",
+                              fontWeight: "bold",
+                              cursor: tournament.finalized
+                                ? "pointer"
+                                : "not-allowed",
+                              transition: "all 0.3s ease",
+                              opacity: tournament.finalized ? 1 : 0.6,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (tournament.finalized) {
+                                e.currentTarget.style.transform =
+                                  "translateY(-2px)";
+                                e.currentTarget.style.boxShadow =
+                                  "0 8px 25px rgba(139,92,246,0.6)";
                               }
-                              style={{
-                                background:
-                                  tournament.participantCount >=
-                                    tournament.maxParticipants ||
-                                  Date.now() < tournament.startTime
-                                    ? "rgba(107,114,128,0.5)"
-                                    : "linear-gradient(45deg, #3b82f6, #06b6d4)",
-                                color: "white",
-                                border: "none",
-                                padding: "12px 24px",
-                                borderRadius: "12px",
-                                fontSize: "16px",
-                                fontWeight: "bold",
-                                cursor:
-                                  tournament.participantCount >=
-                                    tournament.maxParticipants ||
-                                  Date.now() < tournament.startTime
-                                    ? "not-allowed"
-                                    : "pointer",
-                                transition: "all 0.3s ease",
-                                opacity:
-                                  tournament.participantCount >=
-                                    tournament.maxParticipants ||
-                                  Date.now() < tournament.startTime
-                                    ? 0.5
-                                    : 1,
-                              }}
-                              onMouseEnter={(e) => {
-                                if (
-                                  tournament.participantCount <
-                                    tournament.maxParticipants &&
-                                  Date.now() >= tournament.startTime
-                                ) {
-                                  e.currentTarget.style.transform =
-                                    "translateY(-2px)";
-                                  e.currentTarget.style.boxShadow =
-                                    "0 8px 25px rgba(59,130,246,0.6)";
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (
-                                  tournament.participantCount <
-                                    tournament.maxParticipants &&
-                                  Date.now() >= tournament.startTime
-                                ) {
-                                  e.currentTarget.style.transform =
-                                    "translateY(0px)";
-                                  e.currentTarget.style.boxShadow = "none";
-                                }
-                              }}
-                            >
-                              {tournament.participantCount >=
-                              tournament.maxParticipants
-                                ? "🔒 Full"
-                                : Date.now() < tournament.startTime
-                                ? "⏰ Starting Soon..."
-                                : "💰 Join & Race (Pay Entry Fee)"}
-                            </button>
-                          )}
-                        </>
-                      )}
-                      {getCurrentTournamentStatus(tournament) === "ended" && (
-                        <button
-                          onClick={() => loadTournamentResults(tournament)}
-                          style={{
-                            background: tournament.finalized
-                              ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
-                              : "rgba(107,114,128,0.5)",
-                            color: "white",
-                            border: "none",
-                            padding: "12px 24px",
-                            borderRadius: "12px",
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            cursor: tournament.finalized
-                              ? "pointer"
-                              : "not-allowed",
-                            transition: "all 0.3s ease",
-                            opacity: tournament.finalized ? 1 : 0.6,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (tournament.finalized) {
-                              e.currentTarget.style.transform =
-                                "translateY(-2px)";
-                              e.currentTarget.style.boxShadow =
-                                "0 8px 25px rgba(139,92,246,0.6)";
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (tournament.finalized) {
-                              e.currentTarget.style.transform =
-                                "translateY(0px)";
-                              e.currentTarget.style.boxShadow = "none";
-                            }
-                          }}
-                        >
-                          {tournament.finalized
-                            ? "🏆 View Results"
-                            : "⏳ Finalizing..."}
-                        </button>
-                      )}
+                            }}
+                            onMouseLeave={(e) => {
+                              if (tournament.finalized) {
+                                e.currentTarget.style.transform =
+                                  "translateY(0px)";
+                                e.currentTarget.style.boxShadow = "none";
+                              }
+                            }}
+                          >
+                            {tournament.finalized
+                              ? "🏆 View Results"
+                              : "⏳ Finalizing..."}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
 
             {loading && (
