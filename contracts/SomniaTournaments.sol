@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 
-interface IEtherlinkRacing {
+interface ISomniaRacing {
     struct RaceCar {
         uint256 speed;
         uint256 handling;
@@ -34,7 +34,7 @@ interface IEtherlinkRacing {
 }
 
 
-contract EtherlinkTournaments is Ownable, ReentrancyGuard, Pausable {
+contract SomniaTournaments is Ownable, ReentrancyGuard, Pausable {
     struct Tournament {
         uint256 id;
         string name;
@@ -57,7 +57,7 @@ contract EtherlinkTournaments is Ownable, ReentrancyGuard, Pausable {
     uint256 public nextTournamentId = 1;
     uint256 public totalTournamentPrizePool = 0;
     
-    IEtherlinkRacing public racingContract;
+    ISomniaRacing public racingContract;
     
     uint256 public constant BREEDING_COST = 0.01 ether;
     uint256 public constant MIN_TOURNAMENT_DURATION = 1 hours;
@@ -69,7 +69,7 @@ contract EtherlinkTournaments is Ownable, ReentrancyGuard, Pausable {
     event CarBred(uint256 indexed parent1, uint256 indexed parent2, uint256 indexed childId);
     
     constructor(address _racingContract) Ownable(msg.sender) {
-        racingContract = IEtherlinkRacing(_racingContract);
+        racingContract = ISomniaRacing(_racingContract);
     }
     
     
@@ -112,7 +112,7 @@ contract EtherlinkTournaments is Ownable, ReentrancyGuard, Pausable {
         require(!tournament.hasEntered[carId], "Car already entered");
         require(tournament.participants.length < tournament.maxParticipants, "Tournament full");
         
-        IEtherlinkRacing.RaceCar memory car = racingContract.getCarDetails(carId);
+        ISomniaRacing.RaceCar memory car = racingContract.getCarDetails(carId);
         require(!car.isStaked, "Car is staked");
         
         tournament.participants.push(carId);
@@ -188,8 +188,8 @@ contract EtherlinkTournaments is Ownable, ReentrancyGuard, Pausable {
         require(racingContract.ownerOf(parent2Id) == msg.sender, "Not owner of parent2");
         require(parent1Id != parent2Id, "Cannot breed car with itself");
         
-        IEtherlinkRacing.RaceCar memory parent1 = racingContract.getCarDetails(parent1Id);
-        IEtherlinkRacing.RaceCar memory parent2 = racingContract.getCarDetails(parent2Id);
+        ISomniaRacing.RaceCar memory parent1 = racingContract.getCarDetails(parent1Id);
+        ISomniaRacing.RaceCar memory parent2 = racingContract.getCarDetails(parent2Id);
         
         require(!parent1.isStaked && !parent2.isStaked, "Cars are staked");
         
@@ -352,7 +352,7 @@ contract EtherlinkTournaments is Ownable, ReentrancyGuard, Pausable {
     }
     
     function setRacingContract(address _racingContract) external onlyOwner {
-        racingContract = IEtherlinkRacing(_racingContract);
+        racingContract = ISomniaRacing(_racingContract);
     }
     
     function emergencyWithdraw() external onlyOwner {

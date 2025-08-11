@@ -1,10 +1,10 @@
-# EtherLink Racing Game - Setup Guide
+# Somnia Racing Game - Setup Guide
 
 Check full game documentation IN GAME_DOCUMENTATION.md
 
 ## Quick Start
 
-This guide will help you get the EtherLink Racing Game running locally in under 10 minutes.
+This guide will help you get the Somnia Racing Game running locally in under 10 minutes.
 
 ### Prerequisites
 
@@ -18,7 +18,7 @@ Before you begin, ensure you have the following installed:
 
 ```bash
 git clone <repository-url>
-cd my-etherlink-game
+cd my-somnia-game
 ```
 
 Set up .env file with private key (optional for contract redeploment)
@@ -30,8 +30,8 @@ VITE_WALLETCONNECT_PROJECT_ID="WalletConnect Project ID"
 
 # Network Configuration
 
-VITE_ETHERLINK_RPC_URL=https://node.ghostnet.etherlink.com
-VITE_ETHERLINK_CHAIN_ID=128123
+VITE_SOMNIA_RPC_URL=https://dream-rpc.somnia.network/
+VITE_SOMNIA_CHAIN_ID=50312
 
 # Contract Addresses - Update these after deployment
 
@@ -51,19 +51,19 @@ This will install all required packages including React, Vite, Hardhat, and Web3
 
 ### Step 3: Configure Network
 
-Add the Etherlink Testnet to your MetaMask:
+Add the Somnia Testnet to your MetaMask:
 
 **Network Details:**
 
-- Network Name: `Etherlink Testnet`
-- RPC URL: `https://node.ghostnet.etherlink.com`
-- Chain ID: `128123` (or auto-detect)
-- Currency Symbol: `XTZ`
+- Network Name: `Somnia Testnet`
+- RPC URL: `https://dream-rpc.somnia.network/`
+- Chain ID: `50312` (or auto-detect)
+- Currency Symbol: `STT`
 
 ### Step 4: Get Test Tokens
 
-1. Visit the Etherlink Testnet faucet
-2. Request test XTZ tokens for your wallet address
+1. Visit the Somnia Testnet faucet
+2. Request test STT tokens for your wallet address
 3. You'll need these tokens to interact with the game contracts
 
 ### Step 5: Deploy Contracts (Optional)
@@ -74,8 +74,8 @@ If you want to deploy fresh contracts:
 # Compile contracts
 npx hardhat compile
 
-# Deploy to Etherlink Testnet
-npx hardhat run scripts/deploy-contracts.js --network etherlinkTestnet
+# Deploy to Somnia Testnet
+npx hardhat run scripts/deploy-contracts.js --network somniaTestnet
 ```
 
 **Note:** The game is already configured with pre-deployed contracts, so this step is optional. The script automatically updates the .env file with new contracts.
@@ -93,11 +93,11 @@ The game will be available at `http://localhost:5173` or any available port as a
 1. Open the game in your browser
 2. Click "Connect Wallet"
 3. Approve the MetaMask connection
-4. It automatically connect to etherlink if you have it added in your wallet, if not, it will request approval to add the network.
+4. It automatically connect to Somnia test network if you have it added in your wallet, if not, it will request approval to add the network.
 
 ### Step 8: Start Playing
 
-1. **Mint your first car** - Click "mint starter racer on the welcome page" to purchase a starter car (0.01 XTZ)
+1. **Mint your first car** - Click "mint starter racer on the welcome page" to purchase a starter car (0.01 STT)
 2. **Enter a race** - Go to "Main Menu" and click "Start Race"
 3. **Earn rewards** - Complete races to earn RACE tokens and XP
 4. **Check leaderboard** - View your stats and compete with others
@@ -108,12 +108,12 @@ The game will be available at `http://localhost:5173` or any available port as a
 
 **"Wrong Network" Error:**
 
-- Switch to Etherlink Testnet in MetaMask or Rabby wallet.
+- Switch to Somnia Testnet in MetaMask or Rabby wallet.
 - Refresh the page
 
 **Transaction Fails:**
 
-- Ensure you have enough XTZ for gas fees
+- Ensure you have enough STT for gas fees
 - Try increasing gas limit in MetaMask
 
 **Game Won't Load:**
@@ -130,7 +130,7 @@ The game will be available at `http://localhost:5173` or any available port as a
 
 ### Network Configuration Issues
 
-If you can't connect to Etherlink Testnet:
+If you can't connect to Somnia Testnet:
 
 1. Manually add the network in MetaMask:
 
@@ -140,12 +140,12 @@ If you can't connect to Etherlink Testnet:
 2. Import the network configuration:
    ```javascript
    {
-     "chainId": "128123",
-     "chainName": "Etherlink Testnet",
-     "rpcUrls": ["https://node.ghostnet.etherlink.com"],
+     "chainId": "50312",
+     "chainName": "Somnia Testnet",
+     "rpcUrls": ["https://dream-rpc.somnia.network/"],
      "nativeCurrency": {
-       "name": "XTZ",
-       "symbol": "XTZ",
+       "name": "STT",
+       "symbol": "STT",
        "decimals": 18
      }
    }
@@ -175,10 +175,10 @@ npm run preview
 
 ### Contract Verification
 
-To verify contracts on Etherlink explorer:
+To verify contracts on Somnia explorer:
 
 ```bash
-npx hardhat verify --network etherlinkTestnet <CONTRACT_ADDRESS>
+npx hardhat verify --network somniaTestnet <CONTRACT_ADDRESS>
 ```
 
 ## Support
@@ -187,7 +187,7 @@ If you encounter any issues during setup:
 
 1. Check the browser console for error messages
 2. Verify network configuration in MetaMask
-3. Ensure you have sufficient test XTZ tokens
+3. Ensure you have sufficient test STT tokens
 4. Try clearing browser cache and hard refresh
 
 ## Architecture Overview
@@ -195,7 +195,7 @@ If you encounter any issues during setup:
 The game consists of:
 
 - **Frontend**: React + TypeScript + Vite
-- **Smart Contracts**: Solidity contracts on Etherlink
+- **Smart Contracts**: Solidity contracts on Somnia
 - **Web3 Integration**: Wagmi + Viem for blockchain interaction
 - **3D Graphics**: Three.js for racing visualization
 

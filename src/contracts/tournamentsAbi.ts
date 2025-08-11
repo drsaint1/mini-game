@@ -1,4 +1,4 @@
-// src/contracts/tournamentsAbi.ts - EtherlinkTournaments Contract ABI (Updated with 5-minute start time)
+// src/contracts/tournamentsAbi.ts - SomniaTournaments Contract ABI (Updated with 5-minute start time)
 export const TOURNAMENTS_CONTRACT_ADDRESS = 
   import.meta.env.VITE_TOURNAMENTS_CONTRACT_ADDRESS as `0x${string}`;
 

@@ -123,7 +123,7 @@ const LOCAL_TOURNAMENT_ABI = [
           { name: "timestamp", type: "uint256" },
           { name: "tournamentId", type: "uint256" },
         ],
-        internalType: "struct EtherlinkRacing.RaceResult[]",
+        internalType: "struct SomniaRacing.RaceResult[]",
         name: "",
         type: "tuple[]",
       },
@@ -396,7 +396,7 @@ const TournamentResultsModal: React.FC<TournamentResultsModalProps> = ({
                 margin: "5px 0 0 0",
               }}
             >
-              Prize Pool: {formatEther(tournament.prizePool)} XTZ •
+              Prize Pool: {formatEther(tournament.prizePool)} STT •
               Participants: {tournament.participantCount}
             </p>
             <p
@@ -449,7 +449,7 @@ const TournamentResultsModal: React.FC<TournamentResultsModalProps> = ({
             {userResult && (
               <div
                 style={{
-                  background: "linear-gradient(45deg, #10b981, #059669)",
+                  background: "linear-gradient(45deg, #6366f1, #059669)",
                   padding: "20px",
                   borderRadius: "15px",
                   marginBottom: "25px",
@@ -599,7 +599,7 @@ const TournamentResultsModal: React.FC<TournamentResultsModalProps> = ({
                   </div>
                   <div
                     style={{
-                      color: result.prize ? "#10b981" : "rgba(255,255,255,0.5)",
+                      color: result.prize ? "#6366f1" : "rgba(255,255,255,0.5)",
                     }}
                   >
                     {result.prize || "-"}
@@ -1180,7 +1180,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
         showToast(
           `Prize pool must be at least ${formatEther(
             minimumPrizePool
-          )} XTZ (5x entry fee)`,
+          )} STT (5x entry fee)`,
           "warning"
         );
         return;
@@ -1353,7 +1353,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                 margin: "5px 0 0 0",
               }}
             >
-              Compete against players worldwide for XTZ prizes
+              Compete against players worldwide for STT prizes
             </p>
 
             {isConnected && (
@@ -1408,7 +1408,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
             <button
               onClick={() => setShowCreateModal(true)}
               style={{
-                background: "linear-gradient(45deg, #8b5cf6, #06b6d4)",
+                background: "linear-gradient(45deg, #0891b2, #06b6d4)",
                 color: "white",
                 border: "none",
                 padding: "12px 24px",
@@ -1446,7 +1446,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
               style={{
                 background: loading
                   ? "#6b7280"
-                  : "linear-gradient(45deg, #10b981, #06d6a0)",
+                  : "linear-gradient(45deg, #6366f1, #06d6a0)",
                 color: "white",
                 border: "none",
                 padding: "12px 24px",
@@ -1781,7 +1781,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                               <div
                                 style={{
                                   background:
-                                    "linear-gradient(45deg, #10b981, #059669)",
+                                    "linear-gradient(45deg, #6366f1, #059669)",
                                   color: "white",
                                   padding: "4px 12px",
                                   borderRadius: "20px",
@@ -1868,7 +1868,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                             fontWeight: "bold",
                           }}
                         >
-                          {formatEther(tournament.entryFee)} XTZ
+                          {formatEther(tournament.entryFee)} STT
                         </div>
                       </div>
 
@@ -1891,12 +1891,12 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                         </div>
                         <div
                           style={{
-                            color: "#10b981",
+                            color: "#6366f1",
                             fontSize: "18px",
                             fontWeight: "bold",
                           }}
                         >
-                          {formatEther(tournament.prizePool)} XTZ
+                          {formatEther(tournament.prizePool)} STT
                         </div>
                       </div>
 
@@ -1919,7 +1919,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                         </div>
                         <div
                           style={{
-                            color: "#8b5cf6",
+                            color: "#0891b2",
                             fontSize: "18px",
                             fontWeight: "bold",
                           }}
@@ -2062,8 +2062,8 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                                 disabled
                                 style={{
                                   background: "rgba(16,185,129,0.2)",
-                                  color: "#10b981",
-                                  border: "2px solid #10b981",
+                                  color: "#6366f1",
+                                  border: "2px solid #6366f1",
                                   padding: "12px 24px",
                                   borderRadius: "12px",
                                   fontSize: "16px",
@@ -2085,8 +2085,8 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                                 disabled
                                 style={{
                                   background: "rgba(16,185,129,0.2)",
-                                  color: "#10b981",
-                                  border: "2px solid #10b981",
+                                  color: "#6366f1",
+                                  border: "2px solid #6366f1",
                                   padding: "12px 24px",
                                   borderRadius: "12px",
                                   fontSize: "16px",
@@ -2102,7 +2102,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                                 onClick={() => onStartRace(tournament.id)}
                                 style={{
                                   background:
-                                    "linear-gradient(45deg, #10b981, #059669)",
+                                    "linear-gradient(45deg, #6366f1, #059669)",
                                   color: "white",
                                   border: "none",
                                   padding: "12px 24px",
@@ -2201,7 +2201,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                             onClick={() => loadTournamentResults(tournament)}
                             style={{
                               background: tournament.finalized
-                                ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
+                                ? "linear-gradient(45deg, #0891b2, #06b6d4)"
                                 : "rgba(107,114,128,0.5)",
                               color: "white",
                               border: "none",
@@ -2418,7 +2418,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                         fontWeight: "bold",
                       }}
                     >
-                      💰 Entry Fee (XTZ)
+                      💰 Entry Fee (STT)
                     </label>
                     <input
                       type="number"
@@ -2529,7 +2529,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                         fontWeight: "bold",
                       }}
                     >
-                      🏆 Prize Pool (XTZ)
+                      🏆 Prize Pool (STT)
                     </label>
                     <input
                       type="number"
@@ -2587,7 +2587,7 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
                     background:
                       loading || !newTournament.name.trim()
                         ? "rgba(107,114,128,0.5)"
-                        : "linear-gradient(45deg, #8b5cf6, #06b6d4)",
+                        : "linear-gradient(45deg, #0891b2, #06b6d4)",
                     border: "none",
                     color: "white",
                     padding: "12px 24px",
@@ -2639,11 +2639,11 @@ const TournamentLobby: React.FC<TournamentLobbyProps> = ({
             style={{
               background:
                 toast.type === "success"
-                  ? "linear-gradient(45deg, #10b981, #059669)"
+                  ? "linear-gradient(45deg, #6366f1, #059669)"
                   : toast.type === "error"
                   ? "linear-gradient(45deg, #ef4444, #dc2626)"
                   : toast.type === "warning"
-                  ? "linear-gradient(45deg, #f59e0b, #d97706)"
+                  ? "linear-gradient(45deg, #6366f1, #d97706)"
                   : "linear-gradient(45deg, #3b82f6, #2563eb)",
               color: "white",
               padding: "16px 20px",

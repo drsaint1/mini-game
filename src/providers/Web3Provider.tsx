@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createWeb3Modal } from "@web3modal/wagmi/react";
 import { WagmiProvider, useAccount, useSwitchChain } from "wagmi";
-import { config, projectId, etherlinkTestnet } from "../config/web3Config";
+import { config, projectId, somniaTestnet } from "../config/web3Config";
 import { ReactNode, useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -15,7 +15,7 @@ createWeb3Modal({
   enableOnramp: true,
   themeMode: "dark",
   themeVariables: {
-    "--w3m-color-mix": "#00DCFF",
+    "--w3m-color-mix": "#0891b2",
     "--w3m-color-mix-strength": 20,
   },
 });
@@ -29,9 +29,9 @@ function NetworkSwitcher({ children }: { children: ReactNode }) {
   const { switchChain } = useSwitchChain();
 
   useEffect(() => {
-    if (isConnected && chainId !== etherlinkTestnet.id) {
-      console.log(`🔄 Auto-switching from chain ${chainId} to Etherlink Testnet`);
-      switchChain({ chainId: etherlinkTestnet.id });
+    if (isConnected && chainId !== somniaTestnet.id) {
+      console.log(`🔄 Auto-switching from chain ${chainId} to Somnia Testnet`);
+      switchChain({ chainId: somniaTestnet.id });
     }
   }, [isConnected, chainId, switchChain]);
 

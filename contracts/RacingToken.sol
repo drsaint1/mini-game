@@ -18,7 +18,7 @@ contract RacingToken is ERC20, Ownable, ReentrancyGuard {
     event AuthorizedMinterAdded(address indexed minter);
     event AuthorizedMinterRemoved(address indexed minter);
     
-    constructor() ERC20("EtherLink Race Token", "RACE") Ownable(msg.sender) {
+    constructor() ERC20("Somnia FAST Token", "FAST") Ownable(msg.sender) {
         _mint(msg.sender, INITIAL_SUPPLY);
     }
     

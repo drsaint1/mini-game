@@ -23,6 +23,7 @@ import {
   RACING_TOKEN_ABI,
 } from "../contracts/racingTokenAbi";
 import CarGarage from "./CarGarage";
+import somniaLogo from "../assets/somnia-logo.jpeg";
 
 interface CarNFT {
   id: number;
@@ -502,10 +503,10 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
   const checkDailyChallengeStatus = () => {
     const today = new Date().toDateString();
     const savedChallengeDate = localStorage.getItem(
-      "etherlinkRacing_dailyChallengeDate"
+      "somniaRacing_dailyChallengeDate"
     );
     const savedChallengeCompleted = localStorage.getItem(
-      "etherlinkRacing_dailyChallengeCompleted"
+      "somniaRacing_dailyChallengeCompleted"
     );
 
     // Generate today's challenge
@@ -518,9 +519,9 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       setDailyChallengeCompleted(false);
 
       if (savedChallengeDate !== today) {
-        localStorage.setItem("etherlinkRacing_dailyChallengeDate", today);
+        localStorage.setItem("somniaRacing_dailyChallengeDate", today);
         localStorage.setItem(
-          "etherlinkRacing_dailyChallengeCompleted",
+          "somniaRacing_dailyChallengeCompleted",
           "false"
         );
       }
@@ -528,8 +529,8 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
   };
 
   useEffect(() => {
-    const savedHighScore = localStorage.getItem("etherlinkRacing_highScore");
-    const savedHistory = localStorage.getItem("etherlinkRacing_gameHistory");
+    const savedHighScore = localStorage.getItem("somniaRacing_highScore");
+    const savedHistory = localStorage.getItem("somniaRacing_gameHistory");
 
     if (savedHighScore) {
       setHighScore(parseInt(savedHighScore));
@@ -563,7 +564,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     if (newScore > highScore) {
       setHighScore(newScore);
       setIsNewHighScore(true);
-      localStorage.setItem("etherlinkRacing_highScore", newScore.toString());
+      localStorage.setItem("somniaRacing_highScore", newScore.toString());
       return true;
     }
     return false;
@@ -578,7 +579,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
     const updatedHistory = [newGame, ...gameHistory].slice(0, 50);
     setGameHistory(updatedHistory);
     localStorage.setItem(
-      "etherlinkRacing_gameHistory",
+      "somniaRacing_gameHistory",
       JSON.stringify(updatedHistory)
     );
   };
@@ -719,7 +720,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       }
 
       if (autoSubmitResults) {
-        showPopup("✅ Results auto-saved on Etherlink!");
+        showPopup("✅ Results auto-saved on Somnia!");
       } else {
         if (isDailyChallengeRace && currentDailyChallenge) {
           showPopup(
@@ -950,7 +951,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
           error.message.includes("Insufficient breeding fee")
         ) {
           errorMessage =
-            "💰 Insufficient funds for breeding fee (need 0.01 XTZ)";
+            "💰 Insufficient funds for breeding fee (need 0.01 STT)";
         } else if (
           error.message.includes("car with itself") ||
           error.message.includes("Cannot breed car with itself")
@@ -986,7 +987,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
 
       const isFirstTimeMint = playerCars.length === 0;
       const successMessage = isFirstTimeMint
-        ? `🎉 Welcome to EtherLink Racing! Your ${carName} has been minted successfully. Redirecting to game...`
+        ? `🎉 Welcome to Somnia Racing! Your ${carName} has been minted successfully. Redirecting to game...`
         : `🎉 ${carName} successfully purchased! Your new NFT car is ready to race!`;
 
       setPurchaseConfirmation(successMessage);
@@ -1029,7 +1030,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
         errorMsg.includes("insufficient funds") ||
         errorMsg.includes("insufficient balance")
       ) {
-        errorMessage = `❌ Insufficient funds to purchase ${carName}. You need 0.01 XTZ.`;
+        errorMessage = `❌ Insufficient funds to purchase ${carName}. You need 0.01 STT.`;
       } else {
         errorMessage = `❌ Failed to purchase ${carName}. Please try again. ${
           error.message || ""
@@ -1188,9 +1189,9 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       setSubmissionStatus("confirming");
 
       if (autoSubmitResults) {
-        showPopup("⏳ Auto-saving to Etherlink blockchain...");
+        showPopup("⏳ Auto-saving to Somnia blockchain...");
       } else {
-        showPopup("⏳ Submitting to Etherlink blockchain...");
+        showPopup("⏳ Submitting to Somnia blockchain...");
       }
     } catch (error) {
       setSubmissionStatus("error");
@@ -1593,9 +1594,9 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
 
         if (challengeCompleted) {
           const today = new Date().toDateString();
-          localStorage.setItem("etherlinkRacing_dailyChallengeDate", today);
+          localStorage.setItem("somniaRacing_dailyChallengeDate", today);
           localStorage.setItem(
-            "etherlinkRacing_dailyChallengeCompleted",
+            "somniaRacing_dailyChallengeCompleted",
             "true"
           );
           setDailyChallengeCompleted(true);
@@ -2224,14 +2225,26 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          background: "linear-gradient(to bottom right, #1e3a8a, #581c87)",
+          background: "linear-gradient(to bottom right, #0f172a, #1e40af)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
         <div style={{ textAlign: "center", color: "white" }}>
-          <div style={{ fontSize: "64px", marginBottom: "16px" }}>🏎️</div>
+          <div style={{ marginBottom: "16px" }}>
+            <img 
+              src={somniaLogo} 
+              alt="Somnia Logo" 
+              style={{ 
+                width: "80px", 
+                height: "80px", 
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "2px solid rgba(255,255,255,0.3)"
+              }} 
+            />
+          </div>
           <h1
             style={{
               fontSize: "48px",
@@ -2239,7 +2252,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
               marginBottom: "16px",
             }}
           >
-            EtherLink Racing
+            Somnia Racing
           </h1>
           <p style={{ fontSize: "20px", marginBottom: "32px" }}>
             Connect your wallet to start racing!
@@ -2247,8 +2260,8 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
           <div style={{ fontSize: "14px", opacity: 0.75 }}>
             <p>🏆 Compete in tournaments</p>
             <p>🚗 Collect & breed NFT cars</p>
-            <p>💰 Earn XTZ rewards</p>
-            <p>⚡ Built on Etherlink</p>
+            <p>💰 Earn FAST rewards</p>
+            <p>⚡ Built on Somnia</p>
           </div>
         </div>
       </div>
@@ -2274,7 +2287,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
           left: 0,
           width: "100vw",
           height: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -2282,7 +2295,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
       >
         <div
           style={{
-            backgroundColor: "#1f2937",
+            backgroundColor: "#1e293b",
             borderRadius: "8px",
             padding: "40px",
             textAlign: "center",
@@ -2297,7 +2310,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
               fontWeight: "bold",
             }}
           >
-            🏁 Welcome to EtherLink Racing!
+            🏁 Welcome to Somnia Racing!
           </h2>
           <p
             style={{
@@ -2387,7 +2400,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
             >
               {purchasingCar !== ""
                 ? "⏳ Minting..."
-                : "🚗 Mint Starter Racer (0.01 XTZ)"}
+                : "🚗 Mint Starter Racer (0.01 STT)"}
             </button>
           </div>
 
@@ -2474,13 +2487,13 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                   backgroundClip: "text",
                 }}
               >
-                EtherLink Racing
+                Somnia Racing
               </h1>
 
               {selectedCar && (
                 <div
                   style={{
-                    backgroundColor: "#1f2937",
+                    backgroundColor: "#1e293b",
                     borderRadius: "8px",
                     padding: "24px",
                     marginBottom: "24px",
@@ -2573,7 +2586,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                         setShowCarSelection(true);
                       }}
                       style={{
-                        backgroundColor: "#3b82f6",
+                        backgroundColor: "#0891b2",
                         color: "white",
                         padding: "12px 32px",
                         borderRadius: "8px",
@@ -3141,7 +3154,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                     fontWeight: "bold",
                   }}
                 >
-                  🪙 RACE Tokens
+                  🪙 FAST Tokens
                 </div>
                 {pendingTokens > 0 && (
                   <button
@@ -3397,7 +3410,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
           >
             <div
               style={{
-                backgroundColor: "#1f2937",
+                backgroundColor: "#1e293b",
                 borderRadius: "8px",
                 padding: "32px",
                 maxWidth: "384px",
@@ -3503,9 +3516,9 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                       {submissionStatus === "waiting_wallet"
                         ? "💳 Waiting for wallet confirmation..."
                         : submissionStatus === "confirming"
-                        ? "⏳ Auto-saving to Etherlink..."
+                        ? "⏳ Auto-saving to Somnia..."
                         : submissionStatus === "success"
-                        ? "✅ Results auto-saved on Etherlink!"
+                        ? "✅ Results auto-saved on Somnia!"
                         : submissionStatus === "error"
                         ? "❌ Auto-save failed. Try manual submission."
                         : "📤 Ready to auto-save"}
@@ -3681,7 +3694,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                     setTimeout(() => setGameRunning(true), 100);
                   }}
                   style={{
-                    backgroundColor: "#10b981",
+                    backgroundColor: "#6366f1",
                     color: "white",
                     padding: "8px 24px",
                     borderRadius: "8px",
@@ -3697,7 +3710,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                 <button
                   onClick={() => setShowCarSelection(true)}
                   style={{
-                    backgroundColor: "#3b82f6",
+                    backgroundColor: "#0891b2",
                     color: "white",
                     padding: "8px 24px",
                     borderRadius: "8px",
@@ -3759,7 +3772,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
               className="custom-scroll smooth-scroll"
               onClick={(e) => e.stopPropagation()}
               style={{
-                backgroundColor: "#1f2937",
+                backgroundColor: "#1e293b",
                 borderRadius: "8px",
                 padding: "24px",
                 maxWidth: "600px",
@@ -4034,7 +4047,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                         ? "✅ Purchased"
                         : purchasingCar === "Starter Racer"
                         ? "⏳ Buying..."
-                        : "Buy for 0.01 XTZ"}
+                        : "Buy for 0.01 STT"}
                     </div>
                   </div>
 
@@ -4092,7 +4105,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                         ? "✅ Purchased"
                         : purchasingCar === "Sport Car"
                         ? "⏳ Buying..."
-                        : "Buy for 0.05 XTZ"}
+                        : "Buy for 0.05 STT"}
                     </div>
                   </div>
 
@@ -4153,7 +4166,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                         ? "✅ Purchased"
                         : purchasingCar === "Racing Beast"
                         ? "⏳ Buying..."
-                        : "Buy for 0.08 XTZ"}
+                        : "Buy for 0.08 STT"}
                     </div>
                   </div>
 
@@ -4236,7 +4249,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                     >
                       {hasCarType("hybrid")
                         ? "✅ Bred Successfully"
-                        : "🧬 Requires Breeding (0.01 XTZ)"}
+                        : "🧬 Requires Breeding (0.01 STT)"}
                     </div>
                     {!hasCarType("hybrid") && playerCars.length >= 2 && (
                       <div
@@ -4294,7 +4307,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
               className="custom-scroll smooth-scroll"
               onClick={(e) => e.stopPropagation()}
               style={{
-                backgroundColor: "#1f2937",
+                backgroundColor: "#1e293b",
                 borderRadius: "8px",
                 padding: "24px",
                 maxWidth: "800px",
@@ -4631,7 +4644,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
               className="custom-scroll smooth-scroll"
               onClick={(e) => e.stopPropagation()}
               style={{
-                backgroundColor: "#1f2937",
+                backgroundColor: "#1e293b",
                 borderRadius: "12px",
                 padding: "30px",
                 maxWidth: "600px",
@@ -4671,7 +4684,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                     fontWeight: "bold",
                   }}
                 >
-                  Breeding Cost: 0.01 XTZ
+                  Breeding Cost: 0.01 STT
                 </span>
                 <br />
                 <span style={{ color: "#10b981", fontSize: "12px" }}>
@@ -4895,7 +4908,7 @@ const EnhancedCarRaceGame: React.FC<EnhancedCarRaceGameProps> = ({
                   {purchasingCar === "Gen-X Hybrid"
                     ? "⏳ Breeding..."
                     : selectedParent1 !== null && selectedParent2 !== null
-                    ? "🧬 Breed for 0.01 XTZ"
+                    ? "🧬 Breed for 0.01 STT"
                     : "Select 2 Eligible Cars"}
                 </button>
               </div>

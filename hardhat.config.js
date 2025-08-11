@@ -18,12 +18,12 @@ const config = {
     hardhat: {
       chainId: 31337,
     },
-    etherlinkTestnet: {
-      url: "https://node.ghostnet.etherlink.com",
-      chainId: 128123,
+    somniaTestnet: {
+      url: "https://dream-rpc.somnia.network/",
+      chainId: 50312,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 1000000000,
-      gas: 6000000,
+      gasPrice: "auto",
+      gas: "auto",
     },
   },
   paths: {

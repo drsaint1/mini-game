@@ -1,4 +1,4 @@
-# EtherLink Racing Game - Complete Documentation
+# Somnia Racing Game - Complete Documentation
 
 ## Quick navigation
 
@@ -20,7 +20,7 @@
 
 ## Game Overview
 
-EtherLink Racing is a blockchain-based 3D racing game built on the Etherlink network. Players mint unique race cars as NFTs, compete in races, earn cryptocurrency rewards, and climb the global leaderboard. The game combines traditional racing gameplay with Web3 features like NFT ownership, token rewards, and decentralized tournaments.
+Somnia Racing is a blockchain-based 3D racing game built on the Somnia network. Players mint unique race cars as NFTs, compete in races, earn cryptocurrency rewards, and climb the global leaderboard. The game combines traditional racing gameplay with Web3 features like NFT ownership, token rewards, and decentralized tournaments.
 
 ### Core Features
 
@@ -43,12 +43,12 @@ When you launch the game, you'll need to:
 
    - Click "Connect Wallet" on the main screen
    - Approve the MetaMask connection request
-   - Ensure you're connected to Etherlink Testnet
+   - Ensure you're connected to Somnia Testnet
 
 2. **Get Your First Car**
 
    - Visit the "Car Lot" from the main menu
-   - Purchase a Starter Car for 0.01 XTZ
+   - Purchase a Starter Car for 0.01 STT
    - Your new car will appear in your garage
 
 3. **Start Racing**
@@ -58,9 +58,9 @@ When you launch the game, you'll need to:
 
 ### Wallet Requirements
 
-- **Network**: Etherlink Testnet
-- **Currency**: XTZ (for gas fees and purchases)
-- **Minimum Balance**: 0.05 XTZ recommended for gameplay
+- **Network**: Somnia Testnet
+- **Currency**: STT (for gas fees and purchases)
+- **Minimum Balance**: 0.05 STT recommended for gameplay
 
 ---
 
@@ -70,7 +70,7 @@ When you launch the game, you'll need to:
 
 The game features three categories of race cars, each with different performance characteristics:
 
-**Starter Cars (0.01 XTZ)**
+**Starter Cars (0.01 STT)**
 
 - Speed: 40-60
 - Handling: 35-55
@@ -78,7 +78,7 @@ The game features three categories of race cars, each with different performance
 - Rarity: Common
 - Perfect for beginners and learning the game
 
-**Sport Cars (0.05 XTZ)**
+**Sport Cars (0.05 STT)**
 
 - Speed: 55-75
 - Handling: 50-70
@@ -86,7 +86,7 @@ The game features three categories of race cars, each with different performance
 - Rarity: Uncommon
 - Balanced performance for intermediate players
 
-**Racing Beasts (0.1 XTZ)**
+**Racing Beasts (0.1 STT)**
 
 - Speed: 70-90
 - Handling: 65-85
@@ -124,7 +124,7 @@ Each car has four main attributes that affect race performance:
 
 ### Car Ownership
 
-- Each car is an ERC-721 NFT on the Etherlink blockchain
+- Each car is an ERC-721 NFT on the Somnia blockchain
 - You have full ownership and can transfer cars between wallets
 - Cars retain their stats and racing history permanently
 - Each car has a unique ID and can be individually tracked
@@ -524,7 +524,7 @@ Detailed statistics for each player:
 
 ### Contract Architecture
 
-**EtherlinkRacing Contract**
+**SomniaRacing Contract**
 
 - Main game logic and car management
 - Race result processing and validation
@@ -538,7 +538,7 @@ Detailed statistics for each player:
 - Token economics and supply management
 - Integration with gameplay mechanics
 
-**EtherlinkTournaments Contract**
+**SomniaTournaments Contract**
 
 - Tournament creation and management
 - Prize pool handling and distribution
@@ -606,7 +606,7 @@ Detailed statistics for each player:
 
 ### Blockchain Integration
 
-**Etherlink Network**
+**Somnia Network**
 
 - Fast transaction processing
 - Low gas fees for gameplay
@@ -640,7 +640,7 @@ Detailed statistics for each player:
 
 ## Conclusion
 
-EtherLink Racing represents the next evolution of blockchain gaming, combining engaging gameplay with true digital ownership and decentralized economics. Whether you're a casual racer looking for fun or a competitive player seeking glory and rewards, the game offers something for everyone.
+Somnia Racing represents the next evolution of blockchain gaming, combining engaging gameplay with true digital ownership and decentralized economics. Whether you're a casual racer looking for fun or a competitive player seeking glory and rewards, the game offers something for everyone.
 
 The combination of NFT car ownership, token rewards, tournament competition, and community features creates a sustainable gaming ecosystem where players truly own their progress and achievements. Welcome to the future of racing games!
 

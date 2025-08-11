@@ -18,7 +18,7 @@ interface IRacingToken {
 
 
 
-contract EtherlinkRacing is ERC721URIStorage, Ownable, ReentrancyGuard, Pausable {
+contract SomniaRacing is ERC721URIStorage, Ownable, ReentrancyGuard, Pausable {
     struct RaceCar {
         uint256 speed;
         uint256 handling;
@@ -82,7 +82,7 @@ contract EtherlinkRacing is ERC721URIStorage, Ownable, ReentrancyGuard, Pausable
     event TokensEarned(address indexed player, uint256 amount, uint256 score);
     event TokensMinted(address indexed player, uint256 amount);
     
-    constructor() ERC721("Etherlink Racing Cars", "ERC") Ownable(msg.sender) {
+    constructor() ERC721("Somnia Racing Cars", "ERC") Ownable(msg.sender) {
         _registerPlayer(msg.sender);
     }
     
@@ -594,7 +594,7 @@ contract EtherlinkRacing is ERC721URIStorage, Ownable, ReentrancyGuard, Pausable
     
     function _generateTokenURI(RaceCar memory car, uint256 tokenId) internal pure returns (string memory) {
         
-        return string(abi.encodePacked("https://api.etherlinkracing.com/metadata/", _toString(tokenId)));
+        return string(abi.encodePacked("https://api.somniaracing.com/metadata/", _toString(tokenId)));
     }
     
     function _min(uint256 a, uint256 b) internal pure returns (uint256) {

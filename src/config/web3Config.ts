@@ -1,44 +1,44 @@
 import { defaultWagmiConfig } from "@web3modal/wagmi/react/config";
 import { mainnet, sepolia } from "wagmi/chains";
 
-export const etherlinkMainnet = {
-  id: 42793,
-  name: "Etherlink Mainnet",
+export const somniaMainnet = {
+  id: 50312,
+  name: "Somnia Mainnet",
   nativeCurrency: {
     decimals: 18,
-    name: "XTZ",
-    symbol: "XTZ",
+    name: "STT",
+    symbol: "STT",
   },
   rpcUrls: {
     default: {
-      http: ["https://node.mainnet.etherlink.com"],
+      http: ["https://dream-rpc.somnia.network/"],
     },
   },
   blockExplorers: {
     default: {
-      name: "Etherlink Explorer",
-      url: "https://explorer.etherlink.com",
+      name: "Somnia Explorer",
+      url: "https://shannon-explorer.somnia.network/",
     },
   },
 } as const;
 
-export const etherlinkTestnet = {
-  id: 128123,
-  name: "Etherlink Testnet",
+export const somniaTestnet = {
+  id: 50312,
+  name: "Somnia Testnet",
   nativeCurrency: {
     decimals: 18,
-    name: "XTZ",
-    symbol: "XTZ",
+    name: "STT",
+    symbol: "STT",
   },
   rpcUrls: {
     default: {
-      http: ["https://node.ghostnet.etherlink.com"],
+      http: ["https://dream-rpc.somnia.network/"],
     },
   },
   blockExplorers: {
     default: {
-      name: "Etherlink Testnet Explorer",
-      url: "https://testnet-explorer.etherlink.com",
+      name: "Somnia Explorer",
+      url: "https://shannon-explorer.somnia.network/",
     },
   },
   testnet: true,
@@ -51,12 +51,12 @@ if (!projectId) throw new Error("Project ID is not defined");
 
 const metadata = {
   name: "Car Race Game",
-  description: "A thrilling 3D car racing game on Etherlink",
+  description: "A thrilling 3D car racing game on Somnia",
   url: "https://your-domain.com",
   icons: ["https://your-domain.com/icon.png"],
 };
 
-const chains = [etherlinkMainnet, etherlinkTestnet, mainnet, sepolia] as const;
+const chains = [somniaMainnet, somniaTestnet, mainnet, sepolia] as const;
 export const config = defaultWagmiConfig({
   chains,
   projectId,

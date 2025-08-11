@@ -7,6 +7,7 @@ import ConnectButton from "./components/ConnectButton";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { useRacingContract } from "./hooks/useRacingContract";
+import somniaLogo from "./assets/somnia-logo.jpeg";
 
 type GameView = "menu" | "racing" | "tournament" | "leaderboard";
 
@@ -125,7 +126,7 @@ function GameWrapper() {
       } else if (error.message?.includes("insufficient")) {
         setMintingStatus("error");
         setMintingMessage(
-          "❌ Insufficient funds. You need at least 0.01 XTZ to mint a Starter Racer."
+          "❌ Insufficient funds. You need at least 0.01 STT to mint a Starter Racer."
         );
       } else if (error.message?.includes("Already has starter car")) {
         setMintingStatus("error");
@@ -153,7 +154,7 @@ function GameWrapper() {
       <div
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -179,7 +180,19 @@ function GameWrapper() {
             padding: "20px",
           }}
         >
-          <div style={{ fontSize: "80px", marginBottom: "20px" }}>🏎️</div>
+          <div style={{ marginBottom: "20px" }}>
+            <img 
+              src={somniaLogo} 
+              alt="Somnia Logo" 
+              style={{ 
+                width: "100px", 
+                height: "100px", 
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "3px solid rgba(255,255,255,0.3)"
+              }} 
+            />
+          </div>
           <h1
             style={{
               fontSize: "48px",
@@ -191,7 +204,7 @@ function GameWrapper() {
               backgroundClip: "text",
             }}
           >
-            EtherLink Racing
+            Somnia Racing
           </h1>
           <p
             style={{
@@ -226,7 +239,7 @@ function GameWrapper() {
                 Compete & Earn
               </h3>
               <p style={{ fontSize: "14px", opacity: 0.8 }}>
-                Join tournaments, win XTZ prizes, and climb the global
+                Join tournaments, win STT prizes, and climb the global
                 leaderboard
               </p>
             </div>
@@ -264,7 +277,7 @@ function GameWrapper() {
                 Lightning Fast
               </h3>
               <p style={{ fontSize: "14px", opacity: 0.8 }}>
-                Built on Etherlink for sub-500ms confirmations and minimal fees
+                Built on Somnia for lightning-fast ~100 ms confirmations and ultra-low, sub-cent fees.
               </p>
             </div>
           </div>
@@ -302,7 +315,7 @@ function GameWrapper() {
       <div
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%)",
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "center",
@@ -333,7 +346,19 @@ function GameWrapper() {
             alignItems: "center",
           }}
         >
-          <div style={{ fontSize: "60px", marginBottom: "15px" }}>🏎️</div>
+          <div style={{ marginBottom: "15px" }}>
+            <img 
+              src={somniaLogo} 
+              alt="Somnia Logo" 
+              style={{ 
+                width: "70px", 
+                height: "70px", 
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "2px solid rgba(255,255,255,0.3)"
+              }} 
+            />
+          </div>
           <h1
             style={{
               fontSize: "36px",
@@ -345,7 +370,7 @@ function GameWrapper() {
               backgroundClip: "text",
             }}
           >
-            Welcome to EtherLink Racing!
+            Welcome to Somnia Racing!
           </h1>
           <p
             style={{
@@ -391,7 +416,7 @@ function GameWrapper() {
                   color: "#ffd700",
                 }}
               >
-                💰 Price: 0.01 XTZ
+                💰 Price: 0.01 STT
               </p>
             </div>
 
@@ -423,11 +448,11 @@ function GameWrapper() {
                   }`,
                   color:
                     mintingStatus === "success"
-                      ? "#10b981"
+                      ? "#6366f1"
                       : mintingStatus === "error" ||
                         mintingStatus === "rejected"
                       ? "#ef4444"
-                      : "#3b82f6",
+                      : "#0891b2",
                 }}
               >
                 {(mintingStatus === "wallet_confirm" ||
@@ -445,7 +470,7 @@ function GameWrapper() {
                         width: "20px",
                         height: "20px",
                         border: "2px solid transparent",
-                        borderTop: "2px solid #3b82f6",
+                        borderTop: "2px solid #0891b2",
                         borderRadius: "50%",
                         animation: "spin 1s linear infinite",
                       }}
@@ -487,7 +512,7 @@ function GameWrapper() {
                       mintingStatus === "confirming" ||
                       isPending
                     ? "#6b7280"
-                    : "#10b981",
+                    : "#6366f1",
                 color: "white",
                 padding: "16px 32px",
                 borderRadius: "12px",
@@ -531,7 +556,7 @@ function GameWrapper() {
                   mintingStatus !== "success" &&
                   !isPending
                 ) {
-                  e.currentTarget.style.backgroundColor = "#10b981";
+                  e.currentTarget.style.backgroundColor = "#6366f1";
                   e.currentTarget.style.transform = "translateY(0px)";
                 }
               }}
@@ -562,7 +587,7 @@ function GameWrapper() {
                   🎮 Redirecting to Game...
                 </div>
               ) : (
-                "🚗 Mint Starter Racer (0.01 XTZ)"
+                "🚗 Mint Starter Racer (0.01 STT)"
               )}
             </button>
           </div>
@@ -684,7 +709,7 @@ function GameWrapper() {
               style={{
                 background:
                   currentView === "leaderboard"
-                    ? "linear-gradient(45deg, #10b981, #ffd700)"
+                    ? "linear-gradient(45deg, #6366f1, #ffd700)"
                     : "transparent",
                 color: currentView === "leaderboard" ? "#000" : "#fff",
                 border:

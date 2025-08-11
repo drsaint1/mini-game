@@ -3,7 +3,7 @@ import fs from "fs";
 const { ethers } = hre;
 
 async function main() {
-  console.log(" Deploying All Contracts to Etherlink Testnet\n");
+  console.log(" Deploying All Contracts to Somnia Testnet\n");
 
   const [deployer] = await ethers.getSigners();
   console.log(" Deploying with account:", deployer.address);
@@ -21,27 +21,27 @@ async function main() {
     const tokenAddress = await tokenContract.getAddress();
     console.log("✅ RacingToken deployed to:", tokenAddress);
 
-    console.log(" Deploying EtherlinkRacing contract...");
-    const EtherlinkRacing = await ethers.getContractFactory("EtherlinkRacing");
+    console.log(" Deploying SomniaRacing contract...");
+    const SomniaRacing = await ethers.getContractFactory("SomniaRacing");
 
-    const racingContract = await EtherlinkRacing.deploy();
+    const racingContract = await SomniaRacing.deploy();
     await racingContract.waitForDeployment();
 
     const racingAddress = await racingContract.getAddress();
-    console.log("✅ EtherlinkRacing deployed to:", racingAddress);
+    console.log("✅ SomniaRacing deployed to:", racingAddress);
 
-    console.log("\n Deploying EtherlinkTournaments contract...");
-    const EtherlinkTournaments = await ethers.getContractFactory(
-      "EtherlinkTournaments"
+    console.log("\n Deploying SomniaTournaments contract...");
+    const SomniaTournaments = await ethers.getContractFactory(
+      "SomniaTournaments"
     );
 
-    const tournamentsContract = await EtherlinkTournaments.deploy(
+    const tournamentsContract = await SomniaTournaments.deploy(
       racingAddress
     );
     await tournamentsContract.waitForDeployment();
 
     const tournamentsAddress = await tournamentsContract.getAddress();
-    console.log("✅ EtherlinkTournaments deployed to:", tournamentsAddress);
+    console.log("✅ SomniaTournaments deployed to:", tournamentsAddress);
 
     console.log("\n🔗 Linking contracts...");
 
@@ -71,8 +71,8 @@ async function main() {
     console.log("\n Complete Deployment Summary:");
 
     console.log(" RacingToken Contract:", tokenAddress);
-    console.log(" EtherlinkRacing Contract:", racingAddress);
-    console.log(" EtherlinkTournaments Contract:", tournamentsAddress);
+    console.log(" SomniaRacing Contract:", racingAddress);
+    console.log(" SomniaTournaments Contract:", tournamentsAddress);
 
     console.log("\n Contract Features:");
 
@@ -82,7 +82,7 @@ async function main() {
     console.log("   • Player token balances");
     console.log("   • Token rewards for racing");
 
-    console.log("\n  EtherlinkRacing:");
+    console.log("\n  SomniaRacing:");
     console.log("   • Car minting (Starter, Sport, Racing Beast)");
     console.log("   • Race result submission with token rewards");
     console.log("   • Staking system (100 XP/day)");
@@ -90,7 +90,7 @@ async function main() {
     console.log("   • Player stats & global leaderboard");
     console.log("   • Token integration for gameplay rewards");
 
-    console.log("\n EtherlinkTournaments:");
+    console.log("\n SomniaTournaments:");
     console.log("   • Tournament creation & management");
     console.log("   • Entry fee collection");
     console.log("   • Prize pool distribution");
@@ -141,7 +141,7 @@ async function main() {
     console.log(`   • TOURNAMENTS_CONTRACT_ADDRESS = "${tournamentsAddress}"`);
 
     const deploymentInfo = {
-      network: "etherlinkTestnet",
+      network: "somniaTestnet",
       timestamp: new Date().toISOString(),
       deployer: deployer.address,
       deployerBalance: ethers.formatEther(balance),
@@ -151,7 +151,7 @@ async function main() {
           type: "ERC20 Token",
           features: ["rewards", "gameplay", "tokenomics"],
         },
-        EtherlinkRacing: {
+        SomniaRacing: {
           address: racingAddress,
           type: "Main Game Contract",
           features: [
@@ -163,7 +163,7 @@ async function main() {
             "tokenRewards",
           ],
         },
-        EtherlinkTournaments: {
+        SomniaTournaments: {
           address: tournamentsAddress,
           type: "Tournament System",
           features: [
@@ -204,7 +204,7 @@ async function main() {
 main()
   .then(() => {
     console.log(
-      "\n ALL CONTRACTS DEPLOYED TO ETHERLINK TESTNET SUCCESSFULLY! "
+      "\n ALL CONTRACTS DEPLOYED TO SOMNIA TESTNET SUCCESSFULLY! "
     );
     console.log("Ready for complete racing game experience! 🏎️");
     process.exit(0);

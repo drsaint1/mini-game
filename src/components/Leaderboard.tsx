@@ -502,7 +502,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
                 style={{
                   position: "sticky",
                   top: 0,
-                  background: "#1f2937",
+                  background: "#1e293b",
                 }}
               >
                 <tr
@@ -571,7 +571,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
                   <tr
                     key={`${entry.address}-${index}`}
                     style={{
-                      borderBottom: "1px solid #1f2937",
+                      borderBottom: "1px solid #1e293b",
                       background: entry.isCurrentPlayer
                         ? "rgba(59,130,246,0.3)"
                         : "transparent",
@@ -580,7 +580,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = entry.isCurrentPlayer
                         ? "rgba(59,130,246,0.4)"
-                        : "#1f2937";
+                        : "#1e293b";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = entry.isCurrentPlayer
@@ -659,7 +659,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
                         fontWeight: "bold",
                       }}
                     >
-                      {formatTokens(entry.totalTokensEarned)} RACE
+                      {formatTokens(entry.totalTokensEarned)} FAST
                     </td>
                   </tr>
                 ))}
@@ -800,7 +800,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
             >
               <div
                 style={{
-                  background: "#1f2937",
+                  background: "#1e293b",
                   borderRadius: "8px",
                   padding: "12px",
                 }}
@@ -817,7 +817,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
               </div>
               <div
                 style={{
-                  background: "#1f2937",
+                  background: "#1e293b",
                   borderRadius: "8px",
                   padding: "12px",
                 }}
@@ -837,7 +837,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
               </div>
               <div
                 style={{
-                  background: "#1f2937",
+                  background: "#1e293b",
                   borderRadius: "8px",
                   padding: "12px",
                 }}
@@ -858,7 +858,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onClose }) => {
               </div>
               <div
                 style={{
-                  background: "#1f2937",
+                  background: "#1e293b",
                   borderRadius: "8px",
                   padding: "12px",
                 }}

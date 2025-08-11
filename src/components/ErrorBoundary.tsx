@@ -219,7 +219,7 @@ class ErrorBoundary extends Component<Props, State> {
                   lineHeight: "1.4",
                 }}
               >
-                <li>NFT cars are stored on Etherlink blockchain</li>
+                <li>NFT cars are stored on Somnia blockchain</li>
                 <li>Race scores are recorded in smart contracts</li>
                 <li>Tournament entries are protected</li>
                 <li>No data loss from this error</li>
@@ -274,7 +274,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
         </div>
 
         <p className="text-xs text-gray-500 mt-4">
-          Your NFT cars and progress are safely stored on Etherlink
+          Your NFT cars and progress are safely stored on Somnia
         </p>
       </div>
     </div>

@@ -251,7 +251,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
     if (pendingStakeUpdates.has(car.id)) {
       return "#8b5cf6";
     }
-    return car.isStaked ? "#fbbf24" : "#10b981";
+    return car.isStaked ? "#fbbf24" : "#6366f1";
   };
 
   const stakedCars = playerCars.filter((car) => car.isStaked);
@@ -307,7 +307,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
     <div
       key={car.id}
       style={{
-        background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
+        background: "linear-gradient(135deg, #1e293b 0%, #111827 100%)",
         borderRadius: "12px",
         padding: "20px",
         border: car.isStaked ? "2px solid #fbbf24" : "1px solid #374151",
@@ -392,7 +392,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
         </div>
         <div style={{ textAlign: "center" }}>
           <div
-            style={{ color: "#3b82f6", fontSize: "18px", fontWeight: "bold" }}
+            style={{ color: "#0891b2", fontSize: "18px", fontWeight: "bold" }}
           >
             {car.handling}
           </div>
@@ -400,7 +400,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
         </div>
         <div style={{ textAlign: "center" }}>
           <div
-            style={{ color: "#10b981", fontSize: "18px", fontWeight: "bold" }}
+            style={{ color: "#6366f1", fontSize: "18px", fontWeight: "bold" }}
           >
             {car.acceleration}
           </div>
@@ -470,7 +470,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                 background:
                   actionInProgress === `staking-${car.id}`
                     ? "#6b7280"
-                    : "#10b981",
+                    : "#6366f1",
                 color: "white",
                 border: "none",
                 padding: "8px 16px",
@@ -498,7 +498,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                 background:
                   actionInProgress === `unstaking-${car.id}`
                     ? "#6b7280"
-                    : "#f59e0b",
+                    : "#6366f1",
                 color: "white",
                 border: "none",
                 padding: "8px 16px",
@@ -604,7 +604,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
               style={{
-                background: activeTab === tab.id ? "#1f2937" : "transparent",
+                background: activeTab === tab.id ? "#1e293b" : "transparent",
                 color: activeTab === tab.id ? "white" : "#9ca3af",
                 border: "none",
                 padding: "12px 16px",
@@ -721,7 +721,7 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
                       >
                         <div
                           style={{
-                            color: "#10b981",
+                            color: "#6366f1",
                             fontSize: "24px",
                             fontWeight: "bold",
                           }}
@@ -808,12 +808,12 @@ const CarGarage: React.FC<CarGarageProps> = ({ onClose }) => {
             style={{
               background:
                 notification.type === "success"
-                  ? "linear-gradient(45deg, #10b981, #059669)"
+                  ? "linear-gradient(45deg, #6366f1, #059669)"
                   : notification.type === "error"
                   ? "linear-gradient(45deg, #ef4444, #dc2626)"
                   : notification.type === "loading"
                   ? "linear-gradient(45deg, #8b5cf6, #7c3aed)"
-                  : "linear-gradient(45deg, #3b82f6, #2563eb)",
+                  : "linear-gradient(45deg, #0891b2, #2563eb)",
               color: "white",
               padding: "16px",
               borderRadius: "12px",
