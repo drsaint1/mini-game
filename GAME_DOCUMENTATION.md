@@ -192,9 +192,9 @@ Race performance is measured by:
 
 ### RACE Token Overview
 
-The RACE token (ERC-20) serves as the primary reward currency:
+The FAST token (ERC-20) serves as the primary reward currency:
 
-- **Total Supply**: 1,000,000 RACE tokens
+- **Total Supply**: 1,000,000 FAST tokens
 - **Initial Distribution**: 100,000 tokens minted at launch
 - **Reward Distribution**: Tokens minted based on race performance
 
@@ -202,14 +202,14 @@ The RACE token (ERC-20) serves as the primary reward currency:
 
 **Race Completion Rewards**
 
-- Base reward: 10 RACE tokens per race
-- Performance bonus: 1 RACE token per 100 points scored
+- Base reward: 10 FAST tokens per race
+- Performance bonus: 1 FAST token per 100 points scored
 - Tournament multiplier: 5x rewards for tournament races
 - Daily streak bonuses for consecutive racing days
 
 **Achievement Rewards**
 
-- First race completion: 50 RACE bonus
+- First race completion: 50 FAST bonus
 - Milestone rewards at 10, 50, 100 races
 - Leaderboard position bonuses
 - Special event participation rewards
